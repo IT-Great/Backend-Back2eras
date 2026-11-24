@@ -80,14 +80,31 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 
 // Public Talkshow Routes (User)
-Route::get('/talkshows/approved', [TalkshowController::class, 'publicIndex']);
-Route::post('/talkshows/register', [TalkshowController::class, 'publicStore']);
+// Route::get('/talkshows/approved', [TalkshowController::class, 'publicIndex']);
+// Route::post('/talkshows/register', [TalkshowController::class, 'publicStore']);
+
+// Public Talkshow Routes (User)
+Route::get('/talkshows', [TalkshowController::class, 'publicIndex']);
+Route::post('/talkshows/{id}/register', [TalkshowController::class, 'registerParticipant']);
+
+// Protected Admin Talkshow Routes (Sanctum)
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::get('/admin/talkshows', [TalkshowController::class, 'index']);
+//     Route::post('/admin/talkshows', [TalkshowController::class, 'store']);
+//     Route::put('/admin/talkshows/{id}', [TalkshowController::class, 'update']);
+//     Route::patch('/admin/talkshows/{id}/status', [TalkshowController::class, 'updateStatus']);
+//     Route::delete('/admin/talkshows/{id}', [TalkshowController::class, 'destroy']);
+// });
 
 // Protected Admin Talkshow Routes (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/talkshows', [TalkshowController::class, 'index']);
+    Route::get('/admin/talkshows/{id}', [TalkshowController::class, 'show']);
     Route::post('/admin/talkshows', [TalkshowController::class, 'store']);
     Route::put('/admin/talkshows/{id}', [TalkshowController::class, 'update']);
-    Route::patch('/admin/talkshows/{id}/status', [TalkshowController::class, 'updateStatus']);
     Route::delete('/admin/talkshows/{id}', [TalkshowController::class, 'destroy']);
+
+    // Approval & Hapus Peserta Talkshow
+    Route::patch('/admin/talkshow-registrations/{id}/status', [TalkshowController::class, 'updateRegistrationStatus']);
+    Route::delete('/admin/talkshow-registrations/{id}', [TalkshowController::class, 'destroyRegistration']);
 });
