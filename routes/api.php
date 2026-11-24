@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\TalkshowController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\VendorCategoryController;
 use App\Http\Controllers\VisitorController;
@@ -57,13 +58,13 @@ Route::delete('/tenants/{id}', [TenantController::class, 'destroy']);
 // Route untuk Partnership
 Route::get('/partners', [PartnerController::class, 'index']);
 Route::post('/partners', [PartnerController::class, 'store']);
-Route::put('/partners/{id}/status', [PartnerController::class, 'updateStatus']); 
+Route::put('/partners/{id}/status', [PartnerController::class, 'updateStatus']);
 Route::delete('/partners/{id}', [PartnerController::class, 'destroy']);
 
 // Route untuk Media Partnership
 Route::get('/media', [MediaController::class, 'index']);
 Route::post('/media', [MediaController::class, 'store']);
-Route::put('/media/{id}/status', [MediaController::class, 'updateStatus']); 
+Route::put('/media/{id}/status', [MediaController::class, 'updateStatus']);
 Route::delete('/media/{id}', [MediaController::class, 'destroy']);
 
 // Auth Routes (Terbuka untuk Login & Forgot Password)
@@ -77,3 +78,16 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+
+// Public Talkshow Routes (User)
+Route::get('/talkshows/approved', [TalkshowController::class, 'publicIndex']);
+Route::post('/talkshows/register', [TalkshowController::class, 'publicStore']);
+
+// Protected Admin Talkshow Routes (Sanctum)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/admin/talkshows', [TalkshowController::class, 'index']);
+    Route::post('/admin/talkshows', [TalkshowController::class, 'store']);
+    Route::put('/admin/talkshows/{id}', [TalkshowController::class, 'update']);
+    Route::patch('/admin/talkshows/{id}/status', [TalkshowController::class, 'updateStatus']);
+    Route::delete('/admin/talkshows/{id}', [TalkshowController::class, 'destroy']);
+});
