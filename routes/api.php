@@ -14,6 +14,7 @@ use App\Http\Controllers\TalkshowController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\VendorCategoryController;
 use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\VoucherController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -87,6 +88,10 @@ Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 Route::get('/talkshows', [TalkshowController::class, 'publicIndex']);
 Route::post('/talkshows/{id}/register', [TalkshowController::class, 'registerParticipant']);
 
+// Public Visitor Auth
+Route::post('/visitors', [VisitorController::class, 'store']);
+Route::post('/visitor/login', [VisitorController::class, 'login']);
+
 // Protected Admin Talkshow Routes (Sanctum)
 // Route::middleware('auth:sanctum')->group(function () {
 //     Route::get('/admin/talkshows', [TalkshowController::class, 'index']);
@@ -107,4 +112,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Approval & Hapus Peserta Talkshow
     Route::patch('/admin/talkshow-registrations/{id}/status', [TalkshowController::class, 'updateRegistrationStatus']);
     Route::delete('/admin/talkshow-registrations/{id}', [TalkshowController::class, 'destroyRegistration']);
+});
+
+// Protected Visitor Profile & Vouchers
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/visitor/me', [VisitorController::class, 'me']);
+    Route::put('/visitor/profile', [VisitorController::class, 'updateProfile']);
+    Route::post('/visitor/logout', [VisitorController::class, 'logout']);
+
+    Route::get('/vouchers', [VoucherController::class, 'index']);
+    Route::post('/vouchers/claim', [VoucherController::class, 'claim']);
 });
