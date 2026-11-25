@@ -493,4 +493,174 @@ class VoucherController extends Controller
             'voucher' => $result['voucher'],
         ], 201);
     }
+
+    /**
+     * Helper format payload voucher lengkap untuk kebutuhan Admin / Kasir.
+     */
+    private function formatAdminVoucher(Voucher $voucher, Carbon $now): array
+    {
+        $brandConfig = collect($this->getBrandsConfig())->firstWhere('slug', $voucher->brand_slug);
+        $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta');
+        $expiresAt = $voucher->expires_at
+            ? $voucher->expires_at->copy()->timezone('Asia/Jakarta')
+            : ($brandConfig ? $this->resolveExpiresAt($brandConfig, $issuedAt ?? $now) : null);
+
+        $usedAt = $voucher->used_at?->copy()->timezone('Asia/Jakarta');
+        $isExpired = $expiresAt ? $now->gt($expiresAt) : false;
+
+        $status = 'unused';
+        if ($voucher->is_used) {
+            $status = 'used';
+        } elseif ($isExpired) {
+            $status = 'expired';
+        }
+
+        return [
+            'id'         => $voucher->id,
+            'code'       => $voucher->code,
+            'brand_slug' => $voucher->brand_slug,
+            'brand_name' => $voucher->brand_name,
+            'location'   => $brandConfig['location'] ?? '-',
+            'terms'      => $brandConfig['terms'] ?? [],
+            'is_used'    => (bool) $voucher->is_used,
+            'is_expired' => $isExpired,
+            'can_redeem' => !$voucher->is_used && !$isExpired,
+            'status'     => $status,
+            'claimed_at' => $issuedAt?->toIso8601String(),
+            'expires_at' => $expiresAt?->toIso8601String(),
+            'used_at'    => $usedAt?->toIso8601String(),
+            'user'       => [
+                'id'       => $voucher->user?->id,
+                'name'     => $voucher->user?->name ?? '-',
+                'email'    => $voucher->user?->email ?? '-',
+                'whatsapp' => $voucher->user?->visitor?->whatsapp ?? '-',
+            ],
+        ];
+    }
+
+    // ADMIN: Menampilkan seluruh daftar voucher beserta ringkasan statistik
+    public function adminIndex(Request $request)
+    {
+        $now = Carbon::now('Asia/Jakarta');
+
+        $vouchers = Voucher::with(['user.visitor'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn (Voucher $v) => $this->formatAdminVoucher($v, $now));
+
+        $stats = [
+            'total'   => $vouchers->count(),
+            'unused'  => $vouchers->where('status', 'unused')->count(),
+            'used'    => $vouchers->where('status', 'used')->count(),
+            'expired' => $vouchers->where('status', 'expired')->count(),
+        ];
+
+        return response()->json([
+            'stats'    => $stats,
+            'vouchers' => $vouchers->values(),
+        ]);
+    }
+
+    // ADMIN: Cek / Verifikasi kode unik (misal: KCL001) sebelum di-redeem
+    public function adminVerify(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:50',
+        ]);
+
+        $code = strtoupper(trim($validated['code']));
+        $now = Carbon::now('Asia/Jakarta');
+
+        $voucher = Voucher::with(['user.visitor'])
+            ->where('code', $code)
+            ->first();
+
+        if (!$voucher) {
+            return response()->json([
+                'message' => "Kode voucher \"{$code}\" tidak ditemukan di sistem.",
+            ], 404);
+        }
+
+        return response()->json([
+            'voucher' => $this->formatAdminVoucher($voucher, $now),
+        ]);
+    }
+
+    // ADMIN: Tandai voucher sebagai sudah dipakai (is_used = true, used_at = now)
+    public function adminRedeem(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:50',
+        ]);
+
+        $code = strtoupper(trim($validated['code']));
+        $now = Carbon::now('Asia/Jakarta');
+
+        $result = DB::transaction(function () use ($code, $now) {
+            $voucher = Voucher::with(['user.visitor'])
+                ->where('code', $code)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$voucher) {
+                return ['state' => 'not_found'];
+            }
+
+            if ($voucher->is_used) {
+                return [
+                    'state'   => 'already_used',
+                    'voucher' => $voucher,
+                ];
+            }
+
+            $brandConfig = collect($this->getBrandsConfig())->firstWhere('slug', $voucher->brand_slug);
+            $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta');
+            $expiresAt = $voucher->expires_at
+                ? $voucher->expires_at->copy()->timezone('Asia/Jakarta')
+                : ($brandConfig ? $this->resolveExpiresAt($brandConfig, $issuedAt ?? $now) : null);
+
+            if ($expiresAt && $now->gt($expiresAt)) {
+                return [
+                    'state'   => 'expired',
+                    'voucher' => $voucher,
+                ];
+            }
+
+            $voucher->is_used = true;
+            $voucher->used_at = $now;
+            $voucher->save();
+
+            return [
+                'state'   => 'redeemed',
+                'voucher' => $voucher,
+            ];
+        });
+
+        if ($result['state'] === 'not_found') {
+            return response()->json([
+                'message' => "Kode voucher \"{$code}\" tidak ditemukan.",
+            ], 404);
+        }
+
+        if ($result['state'] === 'already_used') {
+            $usedTime = $result['voucher']->used_at?->copy()->timezone('Asia/Jakarta')->format('d M Y H:i') . ' WIB';
+            return response()->json([
+                'message' => "Voucher {$code} sudah pernah digunakan pada {$usedTime}.",
+                'voucher' => $this->formatAdminVoucher($result['voucher'], $now),
+            ], 422);
+        }
+
+        if ($result['state'] === 'expired') {
+            return response()->json([
+                'message' => "Voucher {$code} sudah kedaluwarsa dan tidak dapat digunakan.",
+                'voucher' => $this->formatAdminVoucher($result['voucher'], $now),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Voucher {$code} berhasil diverifikasi & ditandai sudah dipakai!",
+            'voucher' => $this->formatAdminVoucher($result['voucher'], $now),
+        ]);
+    }
 }
