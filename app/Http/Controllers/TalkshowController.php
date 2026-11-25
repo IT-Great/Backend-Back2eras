@@ -356,22 +356,62 @@ class TalkshowController extends Controller
     private const GOODIE_BAG_QUOTA = 5;
 
     // USER: Menampilkan semua jadwal talkshow beserta sisa kuota (maks 25)
+    // public function publicIndex()
+    // {
+    //     $talkshows = Talkshow::withCount([
+    //         'registrations as active_registrations_count' => fn ($q) => $q->where('status', '!=', 'rejected'),
+    //         'registrations as approved_participants_count' => fn ($q) => $q->where('status', 'approved'),
+    //     ])
+    //         ->orderBy('schedule', 'asc')
+    //         ->get()
+    //         ->map(function (Talkshow $t) {
+    //             $active = (int) $t->active_registrations_count;
+    //             $approved = (int) $t->approved_participants_count;
+
+    //             $t->max_participants = self::MAX_PARTICIPANTS;
+    //             $t->remaining_slots = max(0, self::MAX_PARTICIPANTS - $active);
+    //             $t->is_full = $active >= self::MAX_PARTICIPANTS;
+    //             $t->goodie_bag_remaining = max(0, self::GOODIE_BAG_QUOTA - $approved);
+
+    //             return $t;
+    //         });
+
+    //     return response()->json($talkshows);
+    // }
+
+    // USER: Menampilkan semua jadwal talkshow beserta sisa kuota (maks 25) & status daftar milik user yang login
     public function publicIndex()
     {
+        $authUser = auth('sanctum')->user();
+
+        $myRegistrations = collect();
+        if ($authUser) {
+            $myRegistrations = TalkshowRegistration::where(function ($q) use ($authUser) {
+                $q->where('user_id', $authUser->id)
+                  ->orWhere('email', $authUser->email);
+            })
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->keyBy('talkshow_id');
+        }
+
         $talkshows = Talkshow::withCount([
             'registrations as active_registrations_count' => fn ($q) => $q->where('status', '!=', 'rejected'),
             'registrations as approved_participants_count' => fn ($q) => $q->where('status', 'approved'),
         ])
             ->orderBy('schedule', 'asc')
             ->get()
-            ->map(function (Talkshow $t) {
+            ->map(function (Talkshow $t) use ($myRegistrations) {
                 $active = (int) $t->active_registrations_count;
                 $approved = (int) $t->approved_participants_count;
+                $myReg = $myRegistrations->get($t->id);
 
                 $t->max_participants = self::MAX_PARTICIPANTS;
                 $t->remaining_slots = max(0, self::MAX_PARTICIPANTS - $active);
                 $t->is_full = $active >= self::MAX_PARTICIPANTS;
                 $t->goodie_bag_remaining = max(0, self::GOODIE_BAG_QUOTA - $approved);
+                $t->my_registration_status = $myReg?->status;
+                $t->my_approved_rank = $myReg?->approved_rank;
 
                 return $t;
             });
