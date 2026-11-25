@@ -836,6 +836,739 @@
 //     }
 // }
 
+// namespace App\Http\Controllers;
+
+// use App\Models\Kol;
+// use App\Models\TalkshowRegistration;
+// use App\Models\Voucher;
+// use Carbon\Carbon;
+// use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\DB;
+
+// class VoucherController extends Controller
+// {
+//     private const DEFAULT_MAX_QUOTA = 999;
+
+//     /**
+//      * Konfigurasi lengkap 7 Brand (format 3 huruf + 001-999),
+//      * aturan bisnis, masa berlaku, kontak, dan Syarat & Ketentuan.
+//      */
+//     private function getBrandsConfig(): array
+//     {
+//         return [
+//             [
+//                 'slug'             => 'back2eras',
+//                 'name'             => 'Back2eras',
+//                 'prefix'           => 'B2E',
+//                 'start_sequence'   => 1,
+//                 'pad_length'       => 3,
+//                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//                 'category'         => 'event',
+//                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
+//                 'phone'            => null,
+//                 'instagram'        => null,
+//                 'validity_label'   => '27 - 29 November 2026 (Selama acara berlangsung)',
+//                 'fixed_expires_at' => '2026-11-29 23:59:59',
+//                 'validity_months'  => null,
+//                 'rule_summary'     => 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Tidak dapat diuangkan atau digabungkan dengan promo lain.',
+//                 'terms'            => [
+//                     'Voucher tidak dapat diuangkan.',
+//                     'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+//                     'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
+//                     'Voucher hanya berlaku selama acara berlangsung saja.',
+//                     'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+//                     'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+//                 ],
+//             ],
+//             [
+//                 'slug'             => 'solher',
+//                 'name'             => 'Solher',
+//                 'prefix'           => 'SLH',
+//                 'start_sequence'   => 1,
+//                 'pad_length'       => 3,
+//                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//                 'category'         => 'event',
+//                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
+//                 'phone'            => null,
+//                 'instagram'        => null,
+//                 'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
+//                 'fixed_expires_at' => '2026-11-29 23:59:59',
+//                 'validity_months'  => null,
+//                 'rule_summary'     => 'Hanya berlaku valid untuk event BACK2ERAS. Tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+//                 'terms'            => [
+//                     'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+//                     'Voucher hanya berlaku valid untuk event BACK2ERAS.',
+//                     'Solher tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
+//                 ],
+//             ],
+//             [
+//                 'slug'             => 'gycora',
+//                 'name'             => 'Gycora',
+//                 'prefix'           => 'GYC',
+//                 'start_sequence'   => 1,
+//                 'pad_length'       => 3,
+//                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//                 'category'         => 'event',
+//                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
+//                 'phone'            => null,
+//                 'instagram'        => null,
+//                 'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
+//                 'fixed_expires_at' => '2026-11-29 23:59:59',
+//                 'validity_months'  => null,
+//                 'rule_summary'     => 'Hanya berlaku valid untuk event BACK2ERAS. Tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+//                 'terms'            => [
+//                     'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+//                     'Voucher hanya berlaku valid untuk event BACK2ERAS.',
+//                     'Gycora Essence tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
+//                 ],
+//             ],
+//             [
+//                 'slug'             => 'glamoire',
+//                 'name'             => 'Glamoire',
+//                 'prefix'           => 'GLM',
+//                 'start_sequence'   => 1,
+//                 'pad_length'       => 3,
+//                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//                 'category'         => 'event',
+//                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
+//                 'phone'            => null,
+//                 'instagram'        => null,
+//                 'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
+//                 'fixed_expires_at' => '2026-11-29 23:59:59',
+//                 'validity_months'  => null,
+//                 'rule_summary'     => 'Hanya berlaku valid untuk event BACK2ERAS. Tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+//                 'terms'            => [
+//                     'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+//                     'Voucher hanya berlaku valid untuk event BACK2ERAS.',
+//                     'Glamoire tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
+//                 ],
+//             ],
+//             [
+//                 'slug'             => 'wdp',
+//                 'name'             => 'WDP',
+//                 'prefix'           => 'WDP',
+//                 'start_sequence'   => 1,
+//                 'pad_length'       => 3,
+//                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//                 'category'         => 'dine_in',
+//                 'location'         => 'Waroeng Depe (Jl. Raya Darmo Permai III)',
+//                 'phone'            => null,
+//                 'instagram'        => null,
+//                 'validity_label'   => 'Berlaku 3 bulan dari tanggal terbit (Dine-in)',
+//                 'fixed_expires_at' => null,
+//                 'validity_months'  => 3,
+//                 'rule_summary'     => 'Khusus dine-in di Waroeng Depe (Jl. Raya Darmo Permai III). Berlaku 3 bulan sejak tanggal terbit, belum termasuk pajak.',
+//                 'terms'            => [
+//                     'Voucher tidak dapat diuangkan.',
+//                     'Voucher belum termasuk pajak.',
+//                     'Voucher hanya dapat digunakan untuk makan di tempat (dine-in).',
+//                     'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+//                     'Voucher hanya bisa digunakan di Waroeng Depe (Jl. Raya Darmo Permai III).',
+//                     'Voucher hanya berlaku selama 3 bulan dari tanggal yang telah diterbitkan.',
+//                     'Voucher tidak dapat digunakan untuk cemilan, minuman kaleng, dan konsinyasi.',
+//                     'Waroeng Depe tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+//                     'Syarat dan ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+//                 ],
+//             ],
+//             [
+//                 'slug'             => 'kecilung',
+//                 'name'             => 'Kecilung',
+//                 'prefix'           => 'KCL',
+//                 'start_sequence'   => 1,
+//                 'pad_length'       => 3,
+//                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//                 'category'         => 'dine_in',
+//                 'location'         => 'The Kecilung (Jl. Kecilung No. 8)',
+//                 'phone'            => '0818 0311 6688',
+//                 'instagram'        => '@kecilungresto',
+//                 'validity_label'   => 'Berlaku 3 bulan dari tanggal terbit (Dine-in)',
+//                 'fixed_expires_at' => null,
+//                 'validity_months'  => 3,
+//                 'rule_summary'     => 'Khusus dine-in di The Kecilung (Jl. Kecilung No. 8). Berlaku 3 bulan sejak tanggal terbit, belum termasuk pajak.',
+//                 'terms'            => [
+//                     'Voucher tidak dapat diuangkan.',
+//                     'Voucher belum termasuk pajak.',
+//                     'Voucher hanya dapat digunakan untuk makan di tempat (dine-in).',
+//                     'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+//                     'Voucher hanya bisa digunakan di The Kecilung (Jl. Kecilung No. 8).',
+//                     'Voucher hanya berlaku selama 3 bulan dari tanggal yang telah diterbitkan.',
+//                     'Voucher tidak dapat digunakan untuk cemilan, minuman kaleng, dan konsinyasi.',
+//                     'Kecilung tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+//                     'Syarat dan ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+//                 ],
+//             ],
+//             [
+//                 'slug'             => 'malaijia',
+//                 'name'             => 'Malaijia',
+//                 'prefix'           => 'MLJ',
+//                 'start_sequence'   => 1,
+//                 'pad_length'       => 3,
+//                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//                 'category'         => 'dine_in',
+//                 'location'         => 'Kopitiam Ma Lai Jia (Jl. Kecilung No. 8, Surabaya)',
+//                 'phone'            => '0897-4170-999',
+//                 'instagram'        => '@malaijia.kopitiam',
+//                 'validity_label'   => 'Berlaku 3 bulan dari tanggal terbit (Dine-in)',
+//                 'fixed_expires_at' => null,
+//                 'validity_months'  => 3,
+//                 'rule_summary'     => 'Khusus dine-in di Kopitiam Ma Lai Jia (Jl. Kecilung No. 8, Surabaya). Tidak dapat diuangkan atau digabung promo lain.',
+//                 'terms'            => [
+//                     'Voucher tidak dapat diuangkan.',
+//                     'Voucher hanya dapat digunakan untuk makan di tempat (dine-in).',
+//                     'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+//                     'Voucher hanya bisa digunakan di Kopitiam Ma Lai Jia (Jl. Kecilung No. 8, Surabaya).',
+//                     'The Kecilung tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+//                     'Syarat dan ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+//                 ],
+//             ],
+//         ];
+//     }
+
+//     /**
+//      * Konfigurasi Voucher Free Goodie Bag khusus 5 pendaftar pertama Talkshow yang di-approve.
+//      */
+//     private function getTalkshowGoodieBagConfig(): array
+//     {
+//         return [
+//             'slug'             => 'talkshow-goodiebag',
+//             'name'             => 'Free Goodie Bag (Talkshow Top 5)',
+//             'prefix'           => 'GBTS',
+//             'start_sequence'   => 1,
+//             'pad_length'       => 3,
+//             'max_quota'        => self::DEFAULT_MAX_QUOTA,
+//             'category'         => 'event',
+//             'location'         => 'Booth Registrasi BACK2ERAS (27 - 29 November 2026)',
+//             'phone'            => null,
+//             'instagram'        => null,
+//             'validity_label'   => 'Khusus 5 Pendaftar Pertama Talkshow (Approved)',
+//             'fixed_expires_at' => '2026-11-29 23:59:59',
+//             'validity_months'  => null,
+//             'rule_summary'     => 'Voucher eksklusif Free Goodie Bag khusus 5 peserta pertama Talkshow yang telah disetujui admin.',
+//             'terms'            => [
+//                 'Khusus untuk 5 pendaftar pertama Talkshow yang status pendaftarannya telah disetujui (Approved) oleh admin.',
+//                 'Tunjukkan kode unik ini saat check-in di lokasi acara BACK2ERAS (27 - 29 November 2026).',
+//                 'Berlaku 1x klaim per akun dan tidak dapat diuangkan atau dipindahtangankan.',
+//                 'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang hilang atau disalahgunakan.',
+//             ],
+//         ];
+//     }
+
+//     private function getAllBrandsConfig(): array
+//     {
+//         return array_merge([$this->getTalkshowGoodieBagConfig()], $this->getBrandsConfig());
+//     }
+
+//     /**
+//      * Hitung tanggal kedaluwarsa berdasarkan aturan masing-masing brand.
+//      */
+//     private function resolveExpiresAt(array $brandConfig, Carbon $issuedAt): Carbon
+//     {
+//         if (!empty($brandConfig['fixed_expires_at'])) {
+//             return Carbon::parse($brandConfig['fixed_expires_at'], 'Asia/Jakarta');
+//         }
+
+//         $months = $brandConfig['validity_months'] ?? 3;
+//         return $issuedAt->copy()->addMonths($months);
+//     }
+
+//     /**
+//      * Ambil angka urut tertinggi saat ini (001 - 999) untuk prefix brand tertentu.
+//      */
+//     private function getHighestSequenceForBrand(array $brandConfig, bool $lock = false): int
+//     {
+//         $query = Voucher::where('brand_slug', $brandConfig['slug']);
+//         if ($lock) {
+//             $query->lockForUpdate();
+//         }
+
+//         $codes = $query->pluck('code');
+//         $prefix = $brandConfig['prefix'];
+//         $startSeq = (int) $brandConfig['start_sequence'];
+//         $maxSeq = $startSeq - 1;
+
+//         foreach ($codes as $code) {
+//             if (preg_match('/^' . preg_quote($prefix, '/') . '(\d{3})$/', $code, $matches)) {
+//                 $num = (int) $matches[1];
+//                 if ($num >= $startSeq && $num > $maxSeq) {
+//                     $maxSeq = $num;
+//                 }
+//             }
+//         }
+
+//         return $maxSeq;
+//     }
+
+//     /**
+//      * Bentuk string kode voucher format [PREFIX][001-999] (contoh: B2E001, KCL001, GBTS001).
+//      */
+//     private function formatVoucherCode(array $brandConfig, int $sequence): string
+//     {
+//         $padLength = (int) ($brandConfig['pad_length'] ?? 3);
+//         return $brandConfig['prefix'] . str_pad((string) $sequence, $padLength, '0', STR_PAD_LEFT);
+//     }
+
+//     // PROTECTED: Menampilkan daftar brand + status klaim & aturan sesuai role/tier user
+//     public function index(Request $request)
+//     {
+//         $user = $request->user();
+//         $now = Carbon::now('Asia/Jakarta');
+
+//         $claimedMap = Voucher::where('user_id', $user->id)
+//             ->get()
+//             ->keyBy('brand_slug');
+
+//         $eligibility = $this->checkVoucherEligibility($user);
+
+//         $brandConfigs = collect($this->getBrandsConfig());
+
+//         // Peserta talkshow urutan 6-25: sembunyikan voucher Back2eras
+//         if (is_array($eligibility['allowed_slugs']) && count($eligibility['allowed_slugs']) > 0) {
+//             $brandConfigs = $brandConfigs->filter(
+//                 fn ($b) => in_array($b['slug'], $eligibility['allowed_slugs'], true)
+//             )->values();
+//         }
+
+//         // Peserta talkshow urutan 1-5 (approved): tambahkan voucher Free Goodie Bag di urutan teratas
+//         if ($eligibility['include_goodiebag']) {
+//             $brandConfigs->prepend($this->getTalkshowGoodieBagConfig());
+//         }
+
+//         $brands = $brandConfigs->map(function ($brand) use ($claimedMap, $now) {
+//             $claimed = $claimedMap->get($brand['slug']);
+//             $maxQuota = (int) ($brand['max_quota'] ?? self::DEFAULT_MAX_QUOTA);
+//             $maxSeqAllowed = (int) $brand['start_sequence'] + $maxQuota - 1;
+//             $highestSeq = $this->getHighestSequenceForBrand($brand, false);
+//             $remainingQuota = max(0, $maxSeqAllowed - $highestSeq);
+
+//             $issuedAt = $claimed?->created_at?->copy()->timezone('Asia/Jakarta');
+//             $expiresAt = null;
+
+//             if ($claimed) {
+//                 $expiresAt = $claimed->expires_at
+//                     ? $claimed->expires_at->copy()->timezone('Asia/Jakarta')
+//                     : $this->resolveExpiresAt($brand, $issuedAt ?? $now);
+//             } elseif (!empty($brand['fixed_expires_at'])) {
+//                 $expiresAt = Carbon::parse($brand['fixed_expires_at'], 'Asia/Jakarta');
+//             }
+
+//             $isEventClosed = !empty($brand['fixed_expires_at'])
+//                 && $now->gt(Carbon::parse($brand['fixed_expires_at'], 'Asia/Jakarta'));
+
+//             $isExpired = $claimed && $expiresAt ? $now->gt($expiresAt) : $isEventClosed;
+
+//             return [
+//                 'slug'             => $brand['slug'],
+//                 'name'             => $brand['name'],
+//                 'prefix'           => $brand['prefix'],
+//                 'code_placeholder' => $brand['prefix'] . str_repeat('-', (int) $brand['pad_length']),
+//                 'category'         => $brand['category'],
+//                 'location'         => $brand['location'],
+//                 'phone'            => $brand['phone'],
+//                 'instagram'        => $brand['instagram'],
+//                 'validity_label'   => $brand['validity_label'],
+//                 'rule_summary'     => $brand['rule_summary'],
+//                 'terms'            => $brand['terms'],
+//                 'max_quota'        => $maxQuota,
+//                 'remaining_quota'  => $remainingQuota,
+//                 'claimed'          => (bool) $claimed,
+//                 'code'             => $claimed?->code,
+//                 'is_used'          => (bool) ($claimed?->is_used ?? false),
+//                 'is_expired'       => $isExpired,
+//                 'claimed_at'       => $issuedAt?->toIso8601String(),
+//                 'expires_at'       => $expiresAt?->toIso8601String(),
+//             ];
+//         })->values();
+
+//         return response()->json([
+//             'can_claim_voucher'  => $eligibility['eligible'],
+//             'claim_block_reason' => $eligibility['reason'],
+//             'talkshow_rank'      => $eligibility['talkshow_rank'],
+//             'brands'             => $brands,
+//         ]);
+//     }
+
+//     // PROTECTED: Klaim kode unik format [3 HURUF][001-999] (1x per user per brand)
+//     public function claim(Request $request)
+//     {
+//         $validated = $request->validate([
+//             'brand_slug' => 'required|string',
+//         ]);
+
+//         $user = $request->user();
+
+//         // Validasi kelayakan KOL (link medsos) & Talkshow (wajib approved)
+//         $eligibility = $this->checkVoucherEligibility($user);
+//         if (!$eligibility['eligible']) {
+//             return response()->json([
+//                 'message' => $eligibility['reason'],
+//             ], 403);
+//         }
+
+//         $brandConfig = collect($this->getAllBrandsConfig())->firstWhere('slug', $validated['brand_slug']);
+
+//         if (!$brandConfig) {
+//             return response()->json(['message' => 'Brand tidak ditemukan.'], 404);
+//         }
+
+//         // Cegah klaim Free Goodie Bag jika bukan Top 5 Talkshow yang sudah di-approve
+//         if ($brandConfig['slug'] === 'talkshow-goodiebag' && !$eligibility['include_goodiebag']) {
+//             return response()->json([
+//                 'message' => 'Voucher Free Goodie Bag hanya berlaku untuk 5 pendaftar pertama Talkshow yang telah disetujui admin.',
+//             ], 403);
+//         }
+
+//         // Cegah peserta Talkshow urutan 6-25 mengklaim Back2eras
+//         if (
+//             $brandConfig['slug'] !== 'talkshow-goodiebag'
+//             && is_array($eligibility['allowed_slugs'])
+//             && !in_array($brandConfig['slug'], $eligibility['allowed_slugs'], true)
+//         ) {
+//             return response()->json([
+//                 'message' => 'Peserta Talkshow urutan 6 - 25 hanya berhak mengklaim voucher partner (tidak termasuk voucher Back2eras).',
+//             ], 403);
+//         }
+
+//         $now = Carbon::now('Asia/Jakarta');
+
+//         // Validasi periode event untuk brand khusus event BACK2ERAS (27 - 29 November 2026)
+//         if (!empty($brandConfig['fixed_expires_at'])) {
+//             $eventEnd = Carbon::parse($brandConfig['fixed_expires_at'], 'Asia/Jakarta');
+//             if ($now->gt($eventEnd)) {
+//                 return response()->json([
+//                     'message' => 'Periode acara BACK2ERAS (27 - 29 November 2026) telah berakhir. Voucher ' . $brandConfig['name'] . ' sudah tidak dapat diklaim.',
+//                 ], 422);
+//             }
+//         }
+
+//         $maxQuota = (int) ($brandConfig['max_quota'] ?? self::DEFAULT_MAX_QUOTA);
+//         $maxSeqAllowed = (int) $brandConfig['start_sequence'] + $maxQuota - 1;
+
+//         $result = DB::transaction(function () use ($user, $brandConfig, $now, $maxSeqAllowed) {
+//             // 1. Cek apakah user sudah pernah klaim brand ini (dengan row lock)
+//             $existing = Voucher::where('user_id', $user->id)
+//                 ->where('brand_slug', $brandConfig['slug'])
+//                 ->lockForUpdate()
+//                 ->first();
+
+//             if ($existing) {
+//                 return [
+//                     'status'  => 'already_claimed',
+//                     'voucher' => $existing,
+//                 ];
+//             }
+
+//             // 2. Hitung nomor urut berikutnya (001 - 999) secara aman
+//             $highestSeq = $this->getHighestSequenceForBrand($brandConfig, true);
+//             $nextSeq = $highestSeq + 1;
+
+//             while ($nextSeq <= $maxSeqAllowed && Voucher::where('code', $this->formatVoucherCode($brandConfig, $nextSeq))->exists()) {
+//                 $nextSeq++;
+//             }
+
+//             if ($nextSeq > $maxSeqAllowed) {
+//                 return [
+//                     'status' => 'quota_exceeded',
+//                 ];
+//             }
+
+//             // 3. Bentuk kode unik format lama (contoh: B2E001, SLH001, GYC001, GLM001, WDP001, KCL001, MLJ001, GBTS001)
+//             $uniqueCode = $this->formatVoucherCode($brandConfig, $nextSeq);
+//             $expiresAt = $this->resolveExpiresAt($brandConfig, $now);
+
+//             $voucher = Voucher::create([
+//                 'user_id'    => $user->id,
+//                 'brand_slug' => $brandConfig['slug'],
+//                 'brand_name' => $brandConfig['name'],
+//                 'code'       => $uniqueCode,
+//                 'is_used'    => false,
+//                 'expires_at' => $expiresAt,
+//             ]);
+
+//             return [
+//                 'status'  => 'created',
+//                 'voucher' => $voucher,
+//             ];
+//         });
+
+//         if ($result['status'] === 'already_claimed') {
+//             return response()->json([
+//                 'message' => 'Anda sudah mengklaim voucher untuk ' . $brandConfig['name'] . '.',
+//                 'voucher' => $result['voucher'],
+//             ], 422);
+//         }
+
+//         if ($result['status'] === 'quota_exceeded') {
+//             return response()->json([
+//                 'message' => 'Maaf, kuota voucher ' . $brandConfig['name'] . ' (001 - 999) sudah habis.',
+//             ], 422);
+//         }
+
+//         return response()->json([
+//             'success' => true,
+//             'message' => 'Kode unik ' . $brandConfig['name'] . ' berhasil diklaim!',
+//             'voucher' => $result['voucher'],
+//         ], 201);
+//     }
+
+//     /**
+//      * Helper format payload voucher lengkap untuk kebutuhan Admin / Kasir.
+//      */
+//     private function formatAdminVoucher(Voucher $voucher, Carbon $now): array
+//     {
+//         $brandConfig = collect($this->getAllBrandsConfig())->firstWhere('slug', $voucher->brand_slug);
+//         $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta');
+//         $expiresAt = $voucher->expires_at
+//             ? $voucher->expires_at->copy()->timezone('Asia/Jakarta')
+//             : ($brandConfig ? $this->resolveExpiresAt($brandConfig, $issuedAt ?? $now) : null);
+
+//         $usedAt = $voucher->used_at?->copy()->timezone('Asia/Jakarta');
+//         $isExpired = $expiresAt ? $now->gt($expiresAt) : false;
+
+//         $status = 'unused';
+//         if ($voucher->is_used) {
+//             $status = 'used';
+//         } elseif ($isExpired) {
+//             $status = 'expired';
+//         }
+
+//         return [
+//             'id'         => $voucher->id,
+//             'code'       => $voucher->code,
+//             'brand_slug' => $voucher->brand_slug,
+//             'brand_name' => $voucher->brand_name,
+//             'location'   => $brandConfig['location'] ?? '-',
+//             'terms'      => $brandConfig['terms'] ?? [],
+//             'is_used'    => (bool) $voucher->is_used,
+//             'is_expired' => $isExpired,
+//             'can_redeem' => !$voucher->is_used && !$isExpired,
+//             'status'     => $status,
+//             'claimed_at' => $issuedAt?->toIso8601String(),
+//             'expires_at' => $expiresAt?->toIso8601String(),
+//             'used_at'    => $usedAt?->toIso8601String(),
+//             'user'       => [
+//                 'id'       => $voucher->user?->id,
+//                 'name'     => $voucher->user?->name ?? '-',
+//                 'email'    => $voucher->user?->email ?? '-',
+//                 'whatsapp' => $voucher->user?->visitor?->whatsapp
+//                     ?? $voucher->user?->kol?->whatsapp
+//                     ?? $voucher->user?->talkshowRegistrations?->first()?->phone
+//                     ?? '-',
+//             ],
+//         ];
+//     }
+
+//     // ADMIN: Menampilkan seluruh daftar voucher beserta ringkasan statistik
+//     public function adminIndex(Request $request)
+//     {
+//         $now = Carbon::now('Asia/Jakarta');
+
+//         $vouchers = Voucher::with(['user.visitor', 'user.kol', 'user.talkshowRegistrations'])
+//             ->orderBy('created_at', 'desc')
+//             ->get()
+//             ->map(fn (Voucher $v) => $this->formatAdminVoucher($v, $now));
+
+//         $stats = [
+//             'total'   => $vouchers->count(),
+//             'unused'  => $vouchers->where('status', 'unused')->count(),
+//             'used'    => $vouchers->where('status', 'used')->count(),
+//             'expired' => $vouchers->where('status', 'expired')->count(),
+//         ];
+
+//         return response()->json([
+//             'stats'    => $stats,
+//             'vouchers' => $vouchers->values(),
+//         ]);
+//     }
+
+//     // ADMIN: Cek / Verifikasi kode unik (misal: B2E001, KCL001, GBTS001) sebelum di-redeem
+//     public function adminVerify(Request $request)
+//     {
+//         $validated = $request->validate([
+//             'code' => 'required|string|max:50',
+//         ]);
+
+//         $code = strtoupper(trim($validated['code']));
+//         $now = Carbon::now('Asia/Jakarta');
+
+//         $voucher = Voucher::with(['user.visitor', 'user.kol', 'user.talkshowRegistrations'])
+//             ->where('code', $code)
+//             ->first();
+
+//         if (!$voucher) {
+//             return response()->json([
+//                 'message' => "Kode voucher \"{$code}\" tidak ditemukan di sistem.",
+//             ], 404);
+//         }
+
+//         return response()->json([
+//             'voucher' => $this->formatAdminVoucher($voucher, $now),
+//         ]);
+//     }
+
+//     // ADMIN: Tandai voucher sebagai sudah dipakai (is_used = true, used_at = now)
+//     public function adminRedeem(Request $request)
+//     {
+//         $validated = $request->validate([
+//             'code' => 'required|string|max:50',
+//         ]);
+
+//         $code = strtoupper(trim($validated['code']));
+//         $now = Carbon::now('Asia/Jakarta');
+
+//         $result = DB::transaction(function () use ($code, $now) {
+//             $voucher = Voucher::with(['user.visitor', 'user.kol', 'user.talkshowRegistrations'])
+//                 ->where('code', $code)
+//                 ->lockForUpdate()
+//                 ->first();
+
+//             if (!$voucher) {
+//                 return ['state' => 'not_found'];
+//             }
+
+//             if ($voucher->is_used) {
+//                 return [
+//                     'state'   => 'already_used',
+//                     'voucher' => $voucher,
+//                 ];
+//             }
+
+//             $brandConfig = collect($this->getAllBrandsConfig())->firstWhere('slug', $voucher->brand_slug);
+//             $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta');
+//             $expiresAt = $voucher->expires_at
+//                 ? $voucher->expires_at->copy()->timezone('Asia/Jakarta')
+//                 : ($brandConfig ? $this->resolveExpiresAt($brandConfig, $issuedAt ?? $now) : null);
+
+//             if ($expiresAt && $now->gt($expiresAt)) {
+//                 return [
+//                     'state'   => 'expired',
+//                     'voucher' => $voucher,
+//                 ];
+//             }
+
+//             $voucher->is_used = true;
+//             $voucher->used_at = $now;
+//             $voucher->save();
+
+//             return [
+//                 'state'   => 'redeemed',
+//                 'voucher' => $voucher,
+//             ];
+//         });
+
+//         if ($result['state'] === 'not_found') {
+//             return response()->json([
+//                 'message' => "Kode voucher \"{$code}\" tidak ditemukan.",
+//             ], 404);
+//         }
+
+//         if ($result['state'] === 'already_used') {
+//             $usedTime = $result['voucher']->used_at?->copy()->timezone('Asia/Jakarta')->format('d M Y H:i') . ' WIB';
+//             return response()->json([
+//                 'message' => "Voucher {$code} sudah pernah digunakan pada {$usedTime}.",
+//                 'voucher' => $this->formatAdminVoucher($result['voucher'], $now),
+//             ], 422);
+//         }
+
+//         if ($result['state'] === 'expired') {
+//             return response()->json([
+//                 'message' => "Voucher {$code} sudah kedaluwarsa dan tidak dapat digunakan.",
+//                 'voucher' => $this->formatAdminVoucher($result['voucher'], $now),
+//             ], 422);
+//         }
+
+//         return response()->json([
+//             'success' => true,
+//             'message' => "Voucher {$code} berhasil diverifikasi & ditandai sudah dipakai!",
+//             'voucher' => $this->formatAdminVoucher($result['voucher'], $now),
+//         ]);
+//     }
+
+//     /**
+//      * Cek kelayakan voucher untuk Visitor, KOL, maupun Peserta Talkshow.
+//      */
+//     private function checkVoucherEligibility($user): array
+//     {
+//         $talkshowRegs = TalkshowRegistration::where(function ($q) use ($user) {
+//             $q->where('user_id', $user->id)
+//               ->orWhere('email', $user->email);
+//         })->get();
+
+//         $approvedRanks = $talkshowRegs
+//             ->where('status', 'approved')
+//             ->pluck('approved_rank')
+//             ->filter(fn ($rank) => $rank !== null)
+//             ->values();
+
+//         $bestApprovedRank = $approvedRanks->isNotEmpty() ? (int) $approvedRanks->min() : null;
+//         $includeGoodieBag = $bestApprovedRank !== null && $bestApprovedRank <= 5;
+
+//         // 1. Aturan khusus akun role = 'talkshow'
+//         if ($user->role === 'talkshow') {
+//             if ($bestApprovedRank === null) {
+//                 $hasPending = $talkshowRegs->where('status', 'pending')->isNotEmpty();
+
+//                 return [
+//                     'eligible'          => false,
+//                     'reason'            => $hasPending
+//                         ? 'Pendaftaran Talkshow Anda masih menunggu persetujuan (Approve) dari admin. Voucher baru dapat diklaim setelah pendaftaran Anda diterima.'
+//                         : 'Pendaftaran Talkshow Anda belum disetujui atau ditolak oleh admin sehingga tidak dapat mengklaim voucher.',
+//                     'allowed_slugs'     => [],
+//                     'include_goodiebag' => false,
+//                     'talkshow_rank'     => null,
+//                 ];
+//             }
+
+//             // Urutan 1 - 5: Free Goodie Bag + Semua 7 voucher visitor (termasuk Back2eras)
+//             if ($bestApprovedRank <= 5) {
+//                 return [
+//                     'eligible'          => true,
+//                     'reason'            => null,
+//                     'allowed_slugs'     => null,
+//                     'include_goodiebag' => true,
+//                     'talkshow_rank'     => $bestApprovedRank,
+//                 ];
+//             }
+
+//             // Urutan 6 - 25: Semua voucher visitor KECUALI Back2eras (tanpa Goodie Bag)
+//             return [
+//                 'eligible'          => true,
+//                 'reason'            => null,
+//                 'allowed_slugs'     => ['solher', 'gycora', 'glamoire', 'wdp', 'kecilung', 'malaijia'],
+//                 'include_goodiebag' => false,
+//                 'talkshow_rank'     => $bestApprovedRank,
+//             ];
+//         }
+
+//         // 2. Aturan khusus akun role = 'kol'
+//         if ($user->role === 'kol') {
+//             $kol = Kol::where('user_id', $user->id)
+//                 ->orWhere('email', $user->email)
+//                 ->first();
+
+//             $hasSocialLink = !empty(trim((string) ($kol?->social_media_link ?? '')));
+
+//             if (!$hasSocialLink) {
+//                 return [
+//                     'eligible'          => false,
+//                     'reason'            => 'Akun KOL wajib mengisi Link Media Sosial terlebih dahulu agar dapat mengklaim voucher.',
+//                     'allowed_slugs'     => null,
+//                     'include_goodiebag' => $includeGoodieBag,
+//                     'talkshow_rank'     => $bestApprovedRank,
+//                 ];
+//             }
+//         }
+
+//         // 3. Default: Visitor (plus bonus Goodie Bag jika juga approved 1-5 di Talkshow)
+//         return [
+//             'eligible'          => true,
+//             'reason'            => null,
+//             'allowed_slugs'     => null,
+//             'include_goodiebag' => $includeGoodieBag,
+//             'talkshow_rank'     => $bestApprovedRank,
+//         ];
+//     }
+// }
+
 namespace App\Http\Controllers;
 
 use App\Models\Kol;
@@ -850,11 +1583,116 @@ class VoucherController extends Controller
     private const DEFAULT_MAX_QUOTA = 999;
 
     /**
-     * Konfigurasi lengkap 7 Brand (format 3 huruf + 001-999),
-     * aturan bisnis, masa berlaku, kontak, dan Syarat & Ketentuan.
+     * Normalisasi role user untuk penentuan aturan voucher.
      */
-    private function getBrandsConfig(): array
+    private function normalizeRole(?string $role): string
     {
+        return match ($role) {
+            'kol'      => 'kol',
+            'talkshow' => 'talkshow',
+            default    => 'visitor',
+        };
+    }
+
+    /**
+     * Konfigurasi lengkap 7 Brand yang beradaptasi terhadap role user (visitor / talkshow / kol).
+     * Format kode tetap 3 huruf prefix + 3 digit angka (001 - 999).
+     */
+    private function getBrandsConfig(string $role = 'visitor'): array
+    {
+        $role = $this->normalizeRole($role);
+
+        // --- A. BACK2ERAS (Visitor memiliki syarat minimum pembelian Rp100.000) ---
+        $back2erasTerms = $role === 'visitor'
+            ? [
+                'Voucher tidak dapat diuangkan.',
+                'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
+                'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+                'Voucher hanya berlaku selama acara berlangsung saja.',
+                'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+                'Minimum pembelian Rp100.000 dalam satu transaksi untuk dapat mengklaim.',
+                'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+            ]
+            : [
+                'Voucher tidak dapat diuangkan.',
+                'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
+                'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+                'Voucher hanya berlaku selama acara berlangsung saja.',
+                'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+                'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+            ];
+
+        $back2erasSummary = $role === 'visitor'
+            ? 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Minimum pembelian Rp100.000 dalam satu transaksi.'
+            : 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Tidak dapat diuangkan atau digabungkan dengan promo lain.';
+
+        // --- E. WDP (KOL punya masa berlaku 27-29 Nov 2026, berlaku 1 orang, & paket menu khusus) ---
+        $isKol = $role === 'kol';
+
+        $wdpConfig = $isKol
+            ? [
+                'slug'             => 'wdp',
+                'name'             => 'WDP',
+                'prefix'           => 'WDP',
+                'start_sequence'   => 1,
+                'pad_length'       => 3,
+                'max_quota'        => self::DEFAULT_MAX_QUOTA,
+                'category'         => 'dine_in',
+                'location'         => 'Waroeng Depe (Jl. Raya Darmo Permai III)',
+                'phone'            => '0857 7376 9690',
+                'instagram'        => '@waroengdepesby',
+                'website'          => null,
+                'promo_highlight'  => 'Khusus KOL (1 Orang) • Dine-in 27 - 29 Nov 2026',
+                'special_menus'    => [
+                    'NASI SOTO + PERKEDEL & ES TEH',
+                    'NASI SEMARANG & ES CAO',
+                ],
+                'validity_label'   => 'Berlaku tanggal 27 - 29 November 2026 (Dine-in • 1 Orang)',
+                'fixed_expires_at' => '2026-11-29 23:59:59',
+                'validity_months'  => null,
+                'rule_summary'     => 'Voucher khusus KOL untuk 1 orang (dine-in di Waroeng Depe, Jl. Raya Darmo Permai III) pada 27 - 29 November 2026.',
+                'terms'            => [
+                    'Voucher tidak dapat diuangkan.',
+                    'Voucher hanya berlaku untuk 1 orang.',
+                    'Voucher hanya dapat digunakan untuk makan di tempat (dine-in).',
+                    'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+                    'Voucher hanya bisa digunakan di Waroeng Depe (Jl. Raya Darmo Permai III).',
+                    'Voucher hanya berlaku tanggal 27 - 29 November 2026.',
+                    'Waroeng Depe tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+                    'Syarat dan ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+                ],
+            ]
+            : [
+                'slug'             => 'wdp',
+                'name'             => 'WDP',
+                'prefix'           => 'WDP',
+                'start_sequence'   => 1,
+                'pad_length'       => 3,
+                'max_quota'        => self::DEFAULT_MAX_QUOTA,
+                'category'         => 'dine_in',
+                'location'         => 'Waroeng Depe (Jl. Raya Darmo Permai III)',
+                'phone'            => '0857 7376 9690',
+                'instagram'        => '@waroengdepesby',
+                'website'          => null,
+                'promo_highlight'  => 'Min. pembelian 2 item makanan/snack dalam 1 transaksi',
+                'special_menus'    => [],
+                'validity_label'   => 'Berlaku 3 bulan dari tanggal terbit (Dine-in)',
+                'fixed_expires_at' => null,
+                'validity_months'  => 3,
+                'rule_summary'     => 'Khusus dine-in di Waroeng Depe (Jl. Raya Darmo Permai III). Berlaku 3 bulan sejak tanggal terbit, min. pembelian 2 item makanan/snack.',
+                'terms'            => [
+                    'Voucher tidak dapat diuangkan.',
+                    'Voucher belum termasuk pajak.',
+                    'Voucher hanya dapat digunakan untuk makan di tempat (dine-in).',
+                    'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+                    'Voucher hanya bisa digunakan di Waroeng Depe (Jl. Raya Darmo Permai III).',
+                    'Voucher hanya berlaku selama 3 bulan dari tanggal yang telah diterbitkan.',
+                    'Voucher hanya dapat digunakan dengan minimum pembelian 2 (dua) item makanan dan/atau snack dalam satu transaksi.',
+                    'Waroeng Depe tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+                    'Syarat dan ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+                ],
+            ];
+
         return [
             [
                 'slug'             => 'back2eras',
@@ -867,18 +1705,14 @@ class VoucherController extends Controller
                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
                 'phone'            => null,
                 'instagram'        => null,
+                'website'          => null,
+                'promo_highlight'  => $role === 'visitor' ? 'Minimum pembelian Rp100.000 dalam 1 transaksi' : null,
+                'special_menus'    => [],
                 'validity_label'   => '27 - 29 November 2026 (Selama acara berlangsung)',
                 'fixed_expires_at' => '2026-11-29 23:59:59',
                 'validity_months'  => null,
-                'rule_summary'     => 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Tidak dapat diuangkan atau digabungkan dengan promo lain.',
-                'terms'            => [
-                    'Voucher tidak dapat diuangkan.',
-                    'Voucher tidak dapat digabungkan dengan promosi lainnya.',
-                    'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
-                    'Voucher hanya berlaku selama acara berlangsung saja.',
-                    'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
-                    'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
-                ],
+                'rule_summary'     => $back2erasSummary,
+                'terms'            => $back2erasTerms,
             ],
             [
                 'slug'             => 'solher',
@@ -889,16 +1723,22 @@ class VoucherController extends Controller
                 'max_quota'        => self::DEFAULT_MAX_QUOTA,
                 'category'         => 'event',
                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
-                'phone'            => null,
-                'instagram'        => null,
-                'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
+                'phone'            => '0888 3888 585',
+                'instagram'        => '@Solher.official',
+                'website'          => 'www.solher.co.id',
+                'promo_highlight'  => 'Special Price Rp399.000 (dari Rp1.448.000) untuk Party Bag',
+                'special_menus'    => [],
+                'validity_label'   => 'Berlaku selama 27 - 29 November 2026 di Acara Back2Era',
                 'fixed_expires_at' => '2026-11-29 23:59:59',
                 'validity_months'  => null,
-                'rule_summary'     => 'Hanya berlaku valid untuk event BACK2ERAS. Tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+                'rule_summary'     => 'Special price Rp399.000 (dari Rp1.448.000) untuk party bag selama 27 - 29 November 2026 di Acara Back2Era. Berlaku 1x redeem.',
                 'terms'            => [
-                    'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
-                    'Voucher hanya berlaku valid untuk event BACK2ERAS.',
-                    'Solher tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
+                    'Voucher tidak dapat diuangkan.',
+                    'Voucher hanya bisa di-redeem satu kali.',
+                    'Voucher berlaku selama 27 - 29 November 2026 di Acara Back2Era.',
+                    'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+                    'Mendapatkan special price Rp399.000 dari harga Rp1.448.000 untuk party bag.',
+                    'Syarat dan ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
                 ],
             ],
             [
@@ -912,6 +1752,9 @@ class VoucherController extends Controller
                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
                 'phone'            => null,
                 'instagram'        => null,
+                'website'          => null,
+                'promo_highlight'  => null,
+                'special_menus'    => [],
                 'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
                 'fixed_expires_at' => '2026-11-29 23:59:59',
                 'validity_months'  => null,
@@ -933,6 +1776,9 @@ class VoucherController extends Controller
                 'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
                 'phone'            => null,
                 'instagram'        => null,
+                'website'          => null,
+                'promo_highlight'  => null,
+                'special_menus'    => [],
                 'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
                 'fixed_expires_at' => '2026-11-29 23:59:59',
                 'validity_months'  => null,
@@ -943,33 +1789,7 @@ class VoucherController extends Controller
                     'Glamoire tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
                 ],
             ],
-            [
-                'slug'             => 'wdp',
-                'name'             => 'WDP',
-                'prefix'           => 'WDP',
-                'start_sequence'   => 1,
-                'pad_length'       => 3,
-                'max_quota'        => self::DEFAULT_MAX_QUOTA,
-                'category'         => 'dine_in',
-                'location'         => 'Waroeng Depe (Jl. Raya Darmo Permai III)',
-                'phone'            => null,
-                'instagram'        => null,
-                'validity_label'   => 'Berlaku 3 bulan dari tanggal terbit (Dine-in)',
-                'fixed_expires_at' => null,
-                'validity_months'  => 3,
-                'rule_summary'     => 'Khusus dine-in di Waroeng Depe (Jl. Raya Darmo Permai III). Berlaku 3 bulan sejak tanggal terbit, belum termasuk pajak.',
-                'terms'            => [
-                    'Voucher tidak dapat diuangkan.',
-                    'Voucher belum termasuk pajak.',
-                    'Voucher hanya dapat digunakan untuk makan di tempat (dine-in).',
-                    'Voucher tidak dapat digabungkan dengan promosi lainnya.',
-                    'Voucher hanya bisa digunakan di Waroeng Depe (Jl. Raya Darmo Permai III).',
-                    'Voucher hanya berlaku selama 3 bulan dari tanggal yang telah diterbitkan.',
-                    'Voucher tidak dapat digunakan untuk cemilan, minuman kaleng, dan konsinyasi.',
-                    'Waroeng Depe tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
-                    'Syarat dan ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
-                ],
-            ],
+            $wdpConfig,
             [
                 'slug'             => 'kecilung',
                 'name'             => 'Kecilung',
@@ -981,6 +1801,9 @@ class VoucherController extends Controller
                 'location'         => 'The Kecilung (Jl. Kecilung No. 8)',
                 'phone'            => '0818 0311 6688',
                 'instagram'        => '@kecilungresto',
+                'website'          => null,
+                'promo_highlight'  => null,
+                'special_menus'    => [],
                 'validity_label'   => 'Berlaku 3 bulan dari tanggal terbit (Dine-in)',
                 'fixed_expires_at' => null,
                 'validity_months'  => 3,
@@ -1008,6 +1831,9 @@ class VoucherController extends Controller
                 'location'         => 'Kopitiam Ma Lai Jia (Jl. Kecilung No. 8, Surabaya)',
                 'phone'            => '0897-4170-999',
                 'instagram'        => '@malaijia.kopitiam',
+                'website'          => null,
+                'promo_highlight'  => null,
+                'special_menus'    => [],
                 'validity_label'   => 'Berlaku 3 bulan dari tanggal terbit (Dine-in)',
                 'fixed_expires_at' => null,
                 'validity_months'  => 3,
@@ -1040,6 +1866,9 @@ class VoucherController extends Controller
             'location'         => 'Booth Registrasi BACK2ERAS (27 - 29 November 2026)',
             'phone'            => null,
             'instagram'        => null,
+            'website'          => null,
+            'promo_highlight'  => 'Eksklusif 5 Pendaftar Pertama Talkshow (Approved)',
+            'special_menus'    => [],
             'validity_label'   => 'Khusus 5 Pendaftar Pertama Talkshow (Approved)',
             'fixed_expires_at' => '2026-11-29 23:59:59',
             'validity_months'  => null,
@@ -1053,13 +1882,13 @@ class VoucherController extends Controller
         ];
     }
 
-    private function getAllBrandsConfig(): array
+    private function getAllBrandsConfig(string $role = 'visitor'): array
     {
-        return array_merge([$this->getTalkshowGoodieBagConfig()], $this->getBrandsConfig());
+        return array_merge([$this->getTalkshowGoodieBagConfig()], $this->getBrandsConfig($role));
     }
 
     /**
-     * Hitung tanggal kedaluwarsa berdasarkan aturan masing-masing brand.
+     * Hitung tanggal kedaluwarsa berdasarkan aturan masing-masing brand dan role user.
      */
     private function resolveExpiresAt(array $brandConfig, Carbon $issuedAt): Carbon
     {
@@ -1069,6 +1898,29 @@ class VoucherController extends Controller
 
         $months = $brandConfig['validity_months'] ?? 3;
         return $issuedAt->copy()->addMonths($months);
+    }
+
+    /**
+     * Menentukan expired efektif untuk voucher yang sudah terbit.
+     * Jika brand memiliki fixed_expires_at (seperti WDP khusus KOL -> 29 Nov 2026),
+     * selalu ikuti batas tanggal tetap tersebut meskipun voucher sempat terbit sebelum update aturan.
+     */
+    private function resolveEffectiveExpiresAt(?array $brandConfig, ?Voucher $voucher, Carbon $now): ?Carbon
+    {
+        if ($brandConfig && !empty($brandConfig['fixed_expires_at'])) {
+            return Carbon::parse($brandConfig['fixed_expires_at'], 'Asia/Jakarta');
+        }
+
+        if ($voucher && $voucher->expires_at) {
+            return $voucher->expires_at->copy()->timezone('Asia/Jakarta');
+        }
+
+        if ($voucher && $brandConfig) {
+            $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta') ?? $now;
+            return $this->resolveExpiresAt($brandConfig, $issuedAt);
+        }
+
+        return null;
     }
 
     /**
@@ -1099,7 +1951,7 @@ class VoucherController extends Controller
     }
 
     /**
-     * Bentuk string kode voucher format [PREFIX][001-999] (contoh: B2E001, KCL001, GBTS001).
+     * Bentuk string kode voucher format [PREFIX][001-999].
      */
     private function formatVoucherCode(array $brandConfig, int $sequence): string
     {
@@ -1107,10 +1959,11 @@ class VoucherController extends Controller
         return $brandConfig['prefix'] . str_pad((string) $sequence, $padLength, '0', STR_PAD_LEFT);
     }
 
-    // PROTECTED: Menampilkan daftar brand + status klaim & aturan sesuai role/tier user
+    // PROTECTED: Menampilkan daftar brand + status klaim & S&K sesuai role/tier user
     public function index(Request $request)
     {
         $user = $request->user();
+        $role = $this->normalizeRole($user->role);
         $now = Carbon::now('Asia/Jakarta');
 
         $claimedMap = Voucher::where('user_id', $user->id)
@@ -1119,7 +1972,7 @@ class VoucherController extends Controller
 
         $eligibility = $this->checkVoucherEligibility($user);
 
-        $brandConfigs = collect($this->getBrandsConfig());
+        $brandConfigs = collect($this->getBrandsConfig($role));
 
         // Peserta talkshow urutan 6-25: sembunyikan voucher Back2eras
         if (is_array($eligibility['allowed_slugs']) && count($eligibility['allowed_slugs']) > 0) {
@@ -1141,15 +1994,7 @@ class VoucherController extends Controller
             $remainingQuota = max(0, $maxSeqAllowed - $highestSeq);
 
             $issuedAt = $claimed?->created_at?->copy()->timezone('Asia/Jakarta');
-            $expiresAt = null;
-
-            if ($claimed) {
-                $expiresAt = $claimed->expires_at
-                    ? $claimed->expires_at->copy()->timezone('Asia/Jakarta')
-                    : $this->resolveExpiresAt($brand, $issuedAt ?? $now);
-            } elseif (!empty($brand['fixed_expires_at'])) {
-                $expiresAt = Carbon::parse($brand['fixed_expires_at'], 'Asia/Jakarta');
-            }
+            $expiresAt = $this->resolveEffectiveExpiresAt($brand, $claimed, $now);
 
             $isEventClosed = !empty($brand['fixed_expires_at'])
                 && $now->gt(Carbon::parse($brand['fixed_expires_at'], 'Asia/Jakarta'));
@@ -1165,6 +2010,9 @@ class VoucherController extends Controller
                 'location'         => $brand['location'],
                 'phone'            => $brand['phone'],
                 'instagram'        => $brand['instagram'],
+                'website'          => $brand['website'] ?? null,
+                'promo_highlight'  => $brand['promo_highlight'] ?? null,
+                'special_menus'    => $brand['special_menus'] ?? [],
                 'validity_label'   => $brand['validity_label'],
                 'rule_summary'     => $brand['rule_summary'],
                 'terms'            => $brand['terms'],
@@ -1180,6 +2028,7 @@ class VoucherController extends Controller
         })->values();
 
         return response()->json([
+            'user_role'          => $role,
             'can_claim_voucher'  => $eligibility['eligible'],
             'claim_block_reason' => $eligibility['reason'],
             'talkshow_rank'      => $eligibility['talkshow_rank'],
@@ -1187,7 +2036,7 @@ class VoucherController extends Controller
         ]);
     }
 
-    // PROTECTED: Klaim kode unik format [3 HURUF][001-999] (1x per user per brand)
+    // PROTECTED: Klaim kode unik format [PREFIX][001-999] (1x per user per brand)
     public function claim(Request $request)
     {
         $validated = $request->validate([
@@ -1195,6 +2044,7 @@ class VoucherController extends Controller
         ]);
 
         $user = $request->user();
+        $role = $this->normalizeRole($user->role);
 
         // Validasi kelayakan KOL (link medsos) & Talkshow (wajib approved)
         $eligibility = $this->checkVoucherEligibility($user);
@@ -1204,7 +2054,7 @@ class VoucherController extends Controller
             ], 403);
         }
 
-        $brandConfig = collect($this->getAllBrandsConfig())->firstWhere('slug', $validated['brand_slug']);
+        $brandConfig = collect($this->getAllBrandsConfig($role))->firstWhere('slug', $validated['brand_slug']);
 
         if (!$brandConfig) {
             return response()->json(['message' => 'Brand tidak ditemukan.'], 404);
@@ -1230,7 +2080,7 @@ class VoucherController extends Controller
 
         $now = Carbon::now('Asia/Jakarta');
 
-        // Validasi periode event untuk brand khusus event BACK2ERAS (27 - 29 November 2026)
+        // Validasi periode event untuk brand dengan fixed_expires_at (termasuk WDP khusus KOL)
         if (!empty($brandConfig['fixed_expires_at'])) {
             $eventEnd = Carbon::parse($brandConfig['fixed_expires_at'], 'Asia/Jakarta');
             if ($now->gt($eventEnd)) {
@@ -1244,7 +2094,6 @@ class VoucherController extends Controller
         $maxSeqAllowed = (int) $brandConfig['start_sequence'] + $maxQuota - 1;
 
         $result = DB::transaction(function () use ($user, $brandConfig, $now, $maxSeqAllowed) {
-            // 1. Cek apakah user sudah pernah klaim brand ini (dengan row lock)
             $existing = Voucher::where('user_id', $user->id)
                 ->where('brand_slug', $brandConfig['slug'])
                 ->lockForUpdate()
@@ -1257,7 +2106,6 @@ class VoucherController extends Controller
                 ];
             }
 
-            // 2. Hitung nomor urut berikutnya (001 - 999) secara aman
             $highestSeq = $this->getHighestSequenceForBrand($brandConfig, true);
             $nextSeq = $highestSeq + 1;
 
@@ -1271,7 +2119,6 @@ class VoucherController extends Controller
                 ];
             }
 
-            // 3. Bentuk kode unik format lama (contoh: B2E001, SLH001, GYC001, GLM001, WDP001, KCL001, MLJ001, GBTS001)
             $uniqueCode = $this->formatVoucherCode($brandConfig, $nextSeq);
             $expiresAt = $this->resolveExpiresAt($brandConfig, $now);
 
@@ -1311,16 +2158,16 @@ class VoucherController extends Controller
     }
 
     /**
-     * Helper format payload voucher lengkap untuk kebutuhan Admin / Kasir.
+     * Helper format payload voucher lengkap untuk kebutuhan Admin / Kasir,
+     * otomatis menyesuaikan aturan & menu berdasarkan role pemilik voucher.
      */
     private function formatAdminVoucher(Voucher $voucher, Carbon $now): array
     {
-        $brandConfig = collect($this->getAllBrandsConfig())->firstWhere('slug', $voucher->brand_slug);
-        $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta');
-        $expiresAt = $voucher->expires_at
-            ? $voucher->expires_at->copy()->timezone('Asia/Jakarta')
-            : ($brandConfig ? $this->resolveExpiresAt($brandConfig, $issuedAt ?? $now) : null);
+        $ownerRole = $this->normalizeRole($voucher->user?->role);
+        $brandConfig = collect($this->getAllBrandsConfig($ownerRole))->firstWhere('slug', $voucher->brand_slug);
 
+        $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta');
+        $expiresAt = $this->resolveEffectiveExpiresAt($brandConfig, $voucher, $now);
         $usedAt = $voucher->used_at?->copy()->timezone('Asia/Jakarta');
         $isExpired = $expiresAt ? $now->gt($expiresAt) : false;
 
@@ -1332,23 +2179,26 @@ class VoucherController extends Controller
         }
 
         return [
-            'id'         => $voucher->id,
-            'code'       => $voucher->code,
-            'brand_slug' => $voucher->brand_slug,
-            'brand_name' => $voucher->brand_name,
-            'location'   => $brandConfig['location'] ?? '-',
-            'terms'      => $brandConfig['terms'] ?? [],
-            'is_used'    => (bool) $voucher->is_used,
-            'is_expired' => $isExpired,
-            'can_redeem' => !$voucher->is_used && !$isExpired,
-            'status'     => $status,
-            'claimed_at' => $issuedAt?->toIso8601String(),
-            'expires_at' => $expiresAt?->toIso8601String(),
-            'used_at'    => $usedAt?->toIso8601String(),
-            'user'       => [
+            'id'              => $voucher->id,
+            'code'            => $voucher->code,
+            'brand_slug'      => $voucher->brand_slug,
+            'brand_name'      => $voucher->brand_name,
+            'location'        => $brandConfig['location'] ?? '-',
+            'promo_highlight' => $brandConfig['promo_highlight'] ?? null,
+            'special_menus'   => $brandConfig['special_menus'] ?? [],
+            'terms'           => $brandConfig['terms'] ?? [],
+            'is_used'         => (bool) $voucher->is_used,
+            'is_expired'      => $isExpired,
+            'can_redeem'      => !$voucher->is_used && !$isExpired,
+            'status'          => $status,
+            'claimed_at'      => $issuedAt?->toIso8601String(),
+            'expires_at'      => $expiresAt?->toIso8601String(),
+            'used_at'         => $usedAt?->toIso8601String(),
+            'user'            => [
                 'id'       => $voucher->user?->id,
                 'name'     => $voucher->user?->name ?? '-',
                 'email'    => $voucher->user?->email ?? '-',
+                'role'     => $ownerRole,
                 'whatsapp' => $voucher->user?->visitor?->whatsapp
                     ?? $voucher->user?->kol?->whatsapp
                     ?? $voucher->user?->talkshowRegistrations?->first()?->phone
@@ -1380,7 +2230,7 @@ class VoucherController extends Controller
         ]);
     }
 
-    // ADMIN: Cek / Verifikasi kode unik (misal: B2E001, KCL001, GBTS001) sebelum di-redeem
+    // ADMIN: Cek / Verifikasi kode unik sebelum di-redeem
     public function adminVerify(Request $request)
     {
         $validated = $request->validate([
@@ -1432,11 +2282,9 @@ class VoucherController extends Controller
                 ];
             }
 
-            $brandConfig = collect($this->getAllBrandsConfig())->firstWhere('slug', $voucher->brand_slug);
-            $issuedAt = $voucher->created_at?->copy()->timezone('Asia/Jakarta');
-            $expiresAt = $voucher->expires_at
-                ? $voucher->expires_at->copy()->timezone('Asia/Jakarta')
-                : ($brandConfig ? $this->resolveExpiresAt($brandConfig, $issuedAt ?? $now) : null);
+            $ownerRole = $this->normalizeRole($voucher->user?->role);
+            $brandConfig = collect($this->getAllBrandsConfig($ownerRole))->firstWhere('slug', $voucher->brand_slug);
+            $expiresAt = $this->resolveEffectiveExpiresAt($brandConfig, $voucher, $now);
 
             if ($expiresAt && $now->gt($expiresAt)) {
                 return [

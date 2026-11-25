@@ -470,6 +470,41 @@ class VisitorController extends Controller
             ]);
         }
 
+        if ($user->role === 'talkshow') {
+            $validated = $request->validate([
+                'full_name' => 'required|string|max:255',
+                'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+                'whatsapp'  => 'required|string|max:25',
+                'password'  => 'nullable|string|min:6',
+            ]);
+
+            DB::transaction(function () use ($user, $validated) {
+                $oldEmail = $user->email;
+
+                $user->name  = $validated['full_name'];
+                $user->email = $validated['email'];
+                if (!empty($validated['password'])) {
+                    $user->password = $validated['password'];
+                }
+                $user->save();
+
+                \App\Models\TalkshowRegistration::where('user_id', $user->id)
+                    ->orWhere('email', $oldEmail)
+                    ->update([
+                        'user_id' => $user->id,
+                        'name'    => $validated['full_name'],
+                        'email'   => $validated['email'],
+                        'phone'   => $validated['whatsapp'],
+                    ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil peserta Talkshow berhasil diperbarui.',
+                'user'    => $this->formatUserPayload($user->fresh()),
+            ]);
+        }
+
         // Default: Visitor
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
