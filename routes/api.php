@@ -122,4 +122,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/vouchers', [VoucherController::class, 'index']);
     Route::post('/vouchers/claim', [VoucherController::class, 'claim']);
+
+    // Admin Voucher Verification & Redeem
+    Route::get('/admin/vouchers', [VoucherController::class, 'adminIndex']);
+    Route::post('/admin/vouchers/verify', [VoucherController::class, 'adminVerify']);
+    Route::post('/admin/vouchers/redeem', [VoucherController::class, 'adminRedeem']);
 });
