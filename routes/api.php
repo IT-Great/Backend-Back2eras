@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KolController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\StoryController;
@@ -92,6 +93,9 @@ Route::post('/talkshows/{id}/register', [TalkshowController::class, 'registerPar
 Route::post('/visitors', [VisitorController::class, 'store']);
 Route::post('/visitor/login', [VisitorController::class, 'login']);
 
+// Public KOL Registration
+Route::post('/kols', [KolController::class, 'store']);
+
 // Protected Admin Talkshow Routes (Sanctum)
 // Route::middleware('auth:sanctum')->group(function () {
 //     Route::get('/admin/talkshows', [TalkshowController::class, 'index']);
@@ -127,4 +131,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/vouchers', [VoucherController::class, 'adminIndex']);
     Route::post('/admin/vouchers/verify', [VoucherController::class, 'adminVerify']);
     Route::post('/admin/vouchers/redeem', [VoucherController::class, 'adminRedeem']);
+
+    // Di dalam Route::middleware('auth:sanctum')->group(function () { ... })
+    Route::get('/admin/kols', [KolController::class, 'index']);
+    Route::post('/admin/kols', [KolController::class, 'adminStore']);
+    Route::put('/admin/kols/{id}', [KolController::class, 'update']);
+    Route::delete('/admin/kols/{id}', [KolController::class, 'destroy']);
 });

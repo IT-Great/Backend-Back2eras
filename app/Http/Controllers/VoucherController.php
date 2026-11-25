@@ -142,6 +142,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kol;
 use App\Models\Voucher;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -395,8 +396,16 @@ class VoucherController extends Controller
             ];
         });
 
+        // return response()->json([
+        //     'brands' => $brands,
+        // ]);
+
+        $eligibility = $this->checkVoucherEligibility($user);
+
         return response()->json([
-            'brands' => $brands,
+            'can_claim_voucher'  => $eligibility['eligible'],
+            'claim_block_reason' => $eligibility['reason'],
+            'brands'             => $brands,
         ]);
     }
 
@@ -408,6 +417,15 @@ class VoucherController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Validasi khusus KOL: wajib mengisi link media sosial
+        $eligibility = $this->checkVoucherEligibility($user);
+        if (!$eligibility['eligible']) {
+            return response()->json([
+                'message' => $eligibility['reason'],
+            ], 403);
+        }
+
         $brandConfig = collect($this->getBrandsConfig())->firstWhere('slug', $validated['brand_slug']);
 
         if (!$brandConfig) {
@@ -533,7 +551,10 @@ class VoucherController extends Controller
                 'id'       => $voucher->user?->id,
                 'name'     => $voucher->user?->name ?? '-',
                 'email'    => $voucher->user?->email ?? '-',
-                'whatsapp' => $voucher->user?->visitor?->whatsapp ?? '-',
+                // 'whatsapp' => $voucher->user?->visitor?->whatsapp ?? '-',
+                'whatsapp' => $voucher->user?->visitor?->whatsapp
+                    ?? $voucher->user?->kol?->whatsapp
+                    ?? '-',
             ],
         ];
     }
@@ -543,7 +564,7 @@ class VoucherController extends Controller
     {
         $now = Carbon::now('Asia/Jakarta');
 
-        $vouchers = Voucher::with(['user.visitor'])
+        $vouchers = Voucher::with(['user.visitor', 'user.kol'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn (Voucher $v) => $this->formatAdminVoucher($v, $now));
@@ -571,7 +592,7 @@ class VoucherController extends Controller
         $code = strtoupper(trim($validated['code']));
         $now = Carbon::now('Asia/Jakarta');
 
-        $voucher = Voucher::with(['user.visitor'])
+        $voucher = Voucher::with(['user.visitor', 'user.kol'])
             ->where('code', $code)
             ->first();
 
@@ -597,7 +618,7 @@ class VoucherController extends Controller
         $now = Carbon::now('Asia/Jakarta');
 
         $result = DB::transaction(function () use ($code, $now) {
-            $voucher = Voucher::with(['user.visitor'])
+            $voucher = Voucher::with(['user.visitor', 'user.kol'])
                 ->where('code', $code)
                 ->lockForUpdate()
                 ->first();
@@ -662,5 +683,32 @@ class VoucherController extends Controller
             'message' => "Voucher {$code} berhasil diverifikasi & ditandai sudah dipakai!",
             'voucher' => $this->formatAdminVoucher($result['voucher'], $now),
         ]);
+    }
+
+    /**
+     * Cek apakah user yang login berhak mengklaim voucher.
+     * Aturan KOL: wajib mengisi `social_media_link`.
+     */
+    private function checkVoucherEligibility($user): array
+    {
+        if ($user->role === 'kol') {
+            $kol = Kol::where('user_id', $user->id)
+                ->orWhere('email', $user->email)
+                ->first();
+
+            $hasSocialLink = !empty(trim((string) ($kol?->social_media_link ?? '')));
+
+            if (!$hasSocialLink) {
+                return [
+                    'eligible' => false,
+                    'reason'   => 'Akun KOL wajib mengisi Link Media Sosial terlebih dahulu agar dapat mengklaim voucher.',
+                ];
+            }
+        }
+
+        return [
+            'eligible' => true,
+            'reason'   => null,
+        ];
     }
 }

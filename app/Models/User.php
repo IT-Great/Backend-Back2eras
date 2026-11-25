@@ -136,4 +136,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Voucher::class);
     }
+
+    public function kol()
+    {
+        return $this->hasOne(Kol::class);
+    }
 }
