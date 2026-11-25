@@ -285,6 +285,32 @@ class VisitorController extends Controller
             ];
         }
 
+        if ($user->role === 'talkshow') {
+            $reg = \App\Models\TalkshowRegistration::where('user_id', $user->id)
+                ->orWhere('email', $user->email)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $isApproved = \App\Models\TalkshowRegistration::where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)->orWhere('email', $user->email);
+            })->where('status', 'approved')->exists();
+
+            return [
+                'id'                   => $user->id,
+                'name'                 => $user->name,
+                'email'                => $user->email,
+                'role'                 => 'talkshow',
+                'whatsapp'             => $reg?->phone ?? '',
+                'instagram'            => '',
+                'address'              => '',
+                'icon'                 => '',
+                'social_media_link'    => '',
+                'can_claim_voucher'    => $isApproved,
+                'subscribe_newsletter' => false,
+                'user_number'          => 0,
+            ];
+        }
+
         $visitor = $visitor ?? Visitor::where('user_id', $user->id)
             ->orWhere('email', $user->email)
             ->first();

@@ -141,4 +141,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Kol::class);
     }
+
+    public function talkshowRegistrations()
+    {
+        return $this->hasMany(TalkshowRegistration::class);
+    }
 }
