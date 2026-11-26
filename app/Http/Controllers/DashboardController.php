@@ -44,7 +44,7 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function stats()
+    public function getStats()
     {
         $now = Carbon::now('Asia/Jakarta');
 
