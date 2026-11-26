@@ -352,6 +352,7 @@ class VisitorController extends Controller
                 'role'                      => 'kol',
                 'whatsapp'                  => $kol?->whatsapp ?? '',
                 'instagram'                 => '',
+                'community_code'            => $visitor?->community_code ?? '',
                 'address'                   => $kol?->address ?? '',
                 'icon'                      => $kol?->icon ?? '',
                 'social_media_link'         => $socialLink,
@@ -418,6 +419,47 @@ class VisitorController extends Controller
     }
 
     // PUBLIC: Register Visitor -> simpan ke tabel `users` DAN `visitors`, langsung login
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'full_name'            => 'required|string|max:255',
+    //         'email'                => 'required|email|max:255|unique:users,email',
+    //         'password'             => 'required|string|min:6',
+    //         'whatsapp'             => 'required|string|max:25',
+    //         'instagram'            => 'nullable|string|max:255',
+    //         'subscribe_newsletter' => 'boolean',
+    //     ]);
+
+    //     [$user, $visitor] = DB::transaction(function () use ($validated) {
+    //         $user = User::create([
+    //             'name'     => $validated['full_name'],
+    //             'email'    => $validated['email'],
+    //             'password' => $validated['password'],
+    //             'role'     => 'visitor',
+    //         ]);
+
+    //         $visitor = Visitor::create([
+    //             'user_id'              => $user->id,
+    //             'full_name'            => $validated['full_name'],
+    //             'email'                => $validated['email'],
+    //             'whatsapp'             => $validated['whatsapp'],
+    //             'instagram'            => $validated['instagram'] ?? null,
+    //             'subscribe_newsletter' => $validated['subscribe_newsletter'] ?? false,
+    //         ]);
+
+    //         return [$user, $visitor];
+    //     });
+
+    //     $token = $user->createToken('visitor_auth_token')->plainTextToken;
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => "Welcome to BACK2ERAS! You're on the list.",
+    //         'token'   => $token,
+    //         'user'    => $this->formatUserPayload($user, $visitor),
+    //     ], 201);
+    // }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -426,10 +468,15 @@ class VisitorController extends Controller
             'password'             => 'required|string|min:6',
             'whatsapp'             => 'required|string|max:25',
             'instagram'            => 'nullable|string|max:255',
+            'community_code'       => 'nullable|string|max:100',
             'subscribe_newsletter' => 'boolean',
         ]);
 
-        [$user, $visitor] = DB::transaction(function () use ($validated) {
+        $communityCode = isset($validated['community_code']) && trim($validated['community_code']) !== ''
+            ? trim($validated['community_code'])
+            : null;
+
+        [$user, $visitor] = DB::transaction(function () use ($validated, $communityCode) {
             $user = User::create([
                 'name'     => $validated['full_name'],
                 'email'    => $validated['email'],
@@ -443,6 +490,7 @@ class VisitorController extends Controller
                 'email'                => $validated['email'],
                 'whatsapp'             => $validated['whatsapp'],
                 'instagram'            => $validated['instagram'] ?? null,
+                'community_code'       => $communityCode,
                 'subscribe_newsletter' => $validated['subscribe_newsletter'] ?? false,
             ]);
 
@@ -585,12 +633,49 @@ class VisitorController extends Controller
         }
 
         // Default: Visitor
+        // $validated = $request->validate([
+        //     'full_name' => 'required|string|max:255',
+        //     'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+        //     'whatsapp'  => 'required|string|max:25',
+        //     'instagram' => 'nullable|string|max:255',
+        //     'password'  => 'nullable|string|min:6',
+        // ]);
+
+        // $visitor = DB::transaction(function () use ($user, $validated) {
+        //     $oldEmail = $user->email;
+
+        //     $user->name  = $validated['full_name'];
+        //     $user->email = $validated['email'];
+        //     if (!empty($validated['password'])) {
+        //         $user->password = $validated['password'];
+        //     }
+        //     $user->save();
+
+        //     $visitor = Visitor::where('user_id', $user->id)
+        //         ->orWhere('email', $oldEmail)
+        //         ->first();
+
+        //     if ($visitor) {
+        //         $visitor->update([
+        //             'user_id'   => $user->id,
+        //             'full_name' => $validated['full_name'],
+        //             'email'     => $validated['email'],
+        //             'whatsapp'  => $validated['whatsapp'],
+        //             'instagram' => $validated['instagram'] ?? null,
+        //         ]);
+        //     }
+
+        //     return $visitor;
+        // });
+
+        // Default: Visitor
         $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email'     => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'whatsapp'  => 'required|string|max:25',
-            'instagram' => 'nullable|string|max:255',
-            'password'  => 'nullable|string|min:6',
+            'full_name'      => 'required|string|max:255',
+            'email'          => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'whatsapp'       => 'required|string|max:25',
+            'instagram'      => 'nullable|string|max:255',
+            'community_code' => 'nullable|string|max:100',
+            'password'       => 'nullable|string|min:6',
         ]);
 
         $visitor = DB::transaction(function () use ($user, $validated) {
@@ -608,13 +693,20 @@ class VisitorController extends Controller
                 ->first();
 
             if ($visitor) {
-                $visitor->update([
+                $updateData = [
                     'user_id'   => $user->id,
                     'full_name' => $validated['full_name'],
                     'email'     => $validated['email'],
                     'whatsapp'  => $validated['whatsapp'],
                     'instagram' => $validated['instagram'] ?? null,
-                ]);
+                ];
+
+                if (array_key_exists('community_code', $validated)) {
+                    $trimmedCode = trim((string) ($validated['community_code'] ?? ''));
+                    $updateData['community_code'] = $trimmedCode !== '' ? $trimmedCode : null;
+                }
+
+                $visitor->update($updateData);
             }
 
             return $visitor;
