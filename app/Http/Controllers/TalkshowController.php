@@ -514,6 +514,7 @@ class TalkshowController extends Controller
             'message'        => 'Pendaftaran berhasil dikirim! Voucher akan otomatis terbuka setelah status pendaftaran Anda disetujui (Accept) oleh admin.',
             'data'           => $result['registration'],
             'queue_position' => $result['queue_pos'],
+            'has_talkshow_registration' => true,
         ];
 
         // Kirim token auto-login jika pendaftar baru saja dibuatkan akun
@@ -527,6 +528,7 @@ class TalkshowController extends Controller
                 'whatsapp'          => $validated['phone'],
                 'instagram'         => '',
                 'can_claim_voucher' => false,
+                'has_talkshow_registration' => true,
                 'user_number'       => 0,
             ];
         }

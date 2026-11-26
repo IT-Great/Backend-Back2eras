@@ -44,6 +44,7 @@ class Voucher extends Model
     protected $fillable = [
         'user_id',
         'brand_slug',
+        'source',
         'brand_name',
         'code',
         'is_used',

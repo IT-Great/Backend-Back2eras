@@ -137,4 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/kols', [KolController::class, 'adminStore']);
     Route::put('/admin/kols/{id}', [KolController::class, 'update']);
     Route::delete('/admin/kols/{id}', [KolController::class, 'destroy']);
+
+    Route::get('/talkshow/vouchers', [VoucherController::class, 'talkshowIndex']);
+    Route::post('/talkshow/vouchers/claim', [VoucherController::class, 'talkshowClaim']);
 });

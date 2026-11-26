@@ -260,8 +260,84 @@ class VisitorController extends Controller
         return Visitor::where('id', '<=', $visitor->id)->count();
     }
 
+    // private function formatUserPayload(User $user, ?Visitor $visitor = null, ?Kol $kol = null): array
+    // {
+    //     if ($user->role === 'kol') {
+    //         $kol = $kol ?? Kol::where('user_id', $user->id)
+    //             ->orWhere('email', $user->email)
+    //             ->first();
+
+    //         $socialLink = trim((string) ($kol?->social_media_link ?? ''));
+
+    //         return [
+    //             'id'                   => $user->id,
+    //             'name'                 => $user->name,
+    //             'email'                => $user->email,
+    //             'role'                 => 'kol',
+    //             'whatsapp'             => $kol?->whatsapp ?? '',
+    //             'instagram'            => '',
+    //             'address'              => $kol?->address ?? '',
+    //             'icon'                 => $kol?->icon ?? '',
+    //             'social_media_link'    => $socialLink,
+    //             'can_claim_voucher'    => $socialLink !== '',
+    //             'subscribe_newsletter' => false,
+    //             'user_number'          => 0,
+    //         ];
+    //     }
+
+    //     if ($user->role === 'talkshow') {
+    //         $reg = \App\Models\TalkshowRegistration::where('user_id', $user->id)
+    //             ->orWhere('email', $user->email)
+    //             ->orderBy('created_at', 'desc')
+    //             ->first();
+
+    //         $isApproved = \App\Models\TalkshowRegistration::where(function ($q) use ($user) {
+    //             $q->where('user_id', $user->id)->orWhere('email', $user->email);
+    //         })->where('status', 'approved')->exists();
+
+    //         return [
+    //             'id'                   => $user->id,
+    //             'name'                 => $user->name,
+    //             'email'                => $user->email,
+    //             'role'                 => 'talkshow',
+    //             'whatsapp'             => $reg?->phone ?? '',
+    //             'instagram'            => '',
+    //             'address'              => '',
+    //             'icon'                 => '',
+    //             'social_media_link'    => '',
+    //             'can_claim_voucher'    => $isApproved,
+    //             'subscribe_newsletter' => false,
+    //             'user_number'          => 0,
+    //         ];
+    //     }
+
+    //     $visitor = $visitor ?? Visitor::where('user_id', $user->id)
+    //         ->orWhere('email', $user->email)
+    //         ->first();
+
+    //     return [
+    //         'id'                   => $user->id,
+    //         'name'                 => $user->name,
+    //         'email'                => $user->email,
+    //         'role'                 => $user->role,
+    //         'whatsapp'             => $visitor?->whatsapp ?? '',
+    //         'instagram'            => $visitor?->instagram ?? '',
+    //         'address'              => '',
+    //         'icon'                 => '',
+    //         'social_media_link'    => '',
+    //         'can_claim_voucher'    => true,
+    //         'subscribe_newsletter' => (bool) ($visitor?->subscribe_newsletter ?? false),
+    //         'user_number'          => $this->getUserNumber($visitor),
+    //     ];
+    // }
+
     private function formatUserPayload(User $user, ?Visitor $visitor = null, ?Kol $kol = null): array
     {
+        $hasTalkshowReg = \App\Models\TalkshowRegistration::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('email', $user->email);
+        })->exists();
+
         if ($user->role === 'kol') {
             $kol = $kol ?? Kol::where('user_id', $user->id)
                 ->orWhere('email', $user->email)
@@ -270,18 +346,19 @@ class VisitorController extends Controller
             $socialLink = trim((string) ($kol?->social_media_link ?? ''));
 
             return [
-                'id'                   => $user->id,
-                'name'                 => $user->name,
-                'email'                => $user->email,
-                'role'                 => 'kol',
-                'whatsapp'             => $kol?->whatsapp ?? '',
-                'instagram'            => '',
-                'address'              => $kol?->address ?? '',
-                'icon'                 => $kol?->icon ?? '',
-                'social_media_link'    => $socialLink,
-                'can_claim_voucher'    => $socialLink !== '',
-                'subscribe_newsletter' => false,
-                'user_number'          => 0,
+                'id'                        => $user->id,
+                'name'                      => $user->name,
+                'email'                     => $user->email,
+                'role'                      => 'kol',
+                'whatsapp'                  => $kol?->whatsapp ?? '',
+                'instagram'                 => '',
+                'address'                   => $kol?->address ?? '',
+                'icon'                      => $kol?->icon ?? '',
+                'social_media_link'         => $socialLink,
+                'can_claim_voucher'         => $socialLink !== '',
+                'has_talkshow_registration' => $hasTalkshowReg,
+                'subscribe_newsletter'      => false,
+                'user_number'               => 0,
             ];
         }
 
@@ -296,18 +373,19 @@ class VisitorController extends Controller
             })->where('status', 'approved')->exists();
 
             return [
-                'id'                   => $user->id,
-                'name'                 => $user->name,
-                'email'                => $user->email,
-                'role'                 => 'talkshow',
-                'whatsapp'             => $reg?->phone ?? '',
-                'instagram'            => '',
-                'address'              => '',
-                'icon'                 => '',
-                'social_media_link'    => '',
-                'can_claim_voucher'    => $isApproved,
-                'subscribe_newsletter' => false,
-                'user_number'          => 0,
+                'id'                        => $user->id,
+                'name'                      => $user->name,
+                'email'                     => $user->email,
+                'role'                      => 'talkshow',
+                'whatsapp'                  => $reg?->phone ?? '',
+                'instagram'                 => '',
+                'address'                   => '',
+                'icon'                      => '',
+                'social_media_link'         => '',
+                'can_claim_voucher'         => $isApproved,
+                'has_talkshow_registration' => $hasTalkshowReg,
+                'subscribe_newsletter'      => false,
+                'user_number'               => 0,
             ];
         }
 
@@ -316,18 +394,19 @@ class VisitorController extends Controller
             ->first();
 
         return [
-            'id'                   => $user->id,
-            'name'                 => $user->name,
-            'email'                => $user->email,
-            'role'                 => $user->role,
-            'whatsapp'             => $visitor?->whatsapp ?? '',
-            'instagram'            => $visitor?->instagram ?? '',
-            'address'              => '',
-            'icon'                 => '',
-            'social_media_link'    => '',
-            'can_claim_voucher'    => true,
-            'subscribe_newsletter' => (bool) ($visitor?->subscribe_newsletter ?? false),
-            'user_number'          => $this->getUserNumber($visitor),
+            'id'                        => $user->id,
+            'name'                      => $user->name,
+            'email'                     => $user->email,
+            'role'                      => $user->role,
+            'whatsapp'                  => $visitor?->whatsapp ?? '',
+            'instagram'                 => $visitor?->instagram ?? '',
+            'address'                   => '',
+            'icon'                      => '',
+            'social_media_link'         => '',
+            'can_claim_voucher'         => true,
+            'has_talkshow_registration' => $hasTalkshowReg,
+            'subscribe_newsletter'      => (bool) ($visitor?->subscribe_newsletter ?? false),
+            'user_number'               => $this->getUserNumber($visitor),
         ];
     }
 
