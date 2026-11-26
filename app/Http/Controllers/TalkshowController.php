@@ -706,12 +706,20 @@ class TalkshowController extends Controller
             ], 422);
         }
 
+        // $reg = $result['registration'];
+        // $tierMsg = '';
+        // if ($reg->status === 'approved') {
+        //     $tierMsg = $reg->approved_rank <= self::GOODIE_BAG_QUOTA
+        //         ? " (Urutan #{$reg->approved_rank}: Berhak Free Goodie Bag + Semua 7 Voucher)"
+        //         : " (Urutan #{$reg->approved_rank}: Berhak 6 Voucher Partner tanpa Back2eras)";
+        // }
+
         $reg = $result['registration'];
         $tierMsg = '';
         if ($reg->status === 'approved') {
             $tierMsg = $reg->approved_rank <= self::GOODIE_BAG_QUOTA
-                ? " (Urutan #{$reg->approved_rank}: Berhak Free Goodie Bag + Semua 7 Voucher)"
-                : " (Urutan #{$reg->approved_rank}: Berhak 6 Voucher Partner tanpa Back2eras)";
+                ? " (Urutan #{$reg->approved_rank}: Berhak Free Goodie Bag + 6 Voucher Brand Partner)"
+                : " (Urutan #{$reg->approved_rank}: Berhak 6 Voucher Brand Partner)";
         }
 
         return response()->json([

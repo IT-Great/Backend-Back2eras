@@ -3336,6 +3336,14 @@ class VoucherController extends Controller
     private const MAX_SEQUENCE = 999;
     private const REGULAR_START_SEQUENCE = 1;
     private const TALKSHOW_START_SEQUENCE = 101;
+    private const TALKSHOW_ALLOWED_SLUGS = [
+        'solher',
+        'gycora',
+        'glamoire',
+        'wdp',
+        'kecilung',
+        'malaijia',
+    ];
 
     private function normalizeRole(?string $role): string
     {
@@ -3945,6 +3953,87 @@ class VoucherController extends Controller
     // 2. TALKSHOW VOUCHER (/voucher-talkshow) — SEMUA PESERTA TALKSHOW (Kode 101 - 999)
     // =========================================================================
 
+    // public function talkshowIndex(Request $request)
+    // {
+    //     $user = $request->user();
+    //     $now = Carbon::now('Asia/Jakarta');
+
+    //     $eligibility = $this->checkTalkshowEligibility($user);
+
+    //     if (!$eligibility['is_participant']) {
+    //         return response()->json([
+    //             'is_talkshow_participant' => false,
+    //             'can_claim_voucher'       => false,
+    //             'claim_block_reason'      => $eligibility['reason'],
+    //             'talkshow_rank'           => null,
+    //             'has_talkshow_goodiebag'  => false,
+    //             'brands'                  => [],
+    //         ]);
+    //     }
+
+    //     $claimedMap = Voucher::where('user_id', $user->id)
+    //         ->where('source', 'talkshow')
+    //         ->get()
+    //         ->keyBy('brand_slug');
+
+    //     $brandConfigs = collect($this->getBrandsConfig('talkshow'));
+
+    //     // Urutan approved 6 - 25: sembunyikan Back2eras (hanya 6 brand partner)
+    //     if (is_array($eligibility['allowed_slugs']) && count($eligibility['allowed_slugs']) > 0) {
+    //         $brandConfigs = $brandConfigs->filter(
+    //             fn ($b) => in_array($b['slug'], $eligibility['allowed_slugs'], true)
+    //         )->values();
+    //     }
+
+    //     $brands = $this->mapBrandsForResponse($brandConfigs, $claimedMap, $now);
+
+    //     return response()->json([
+    //         'is_talkshow_participant' => true,
+    //         'can_claim_voucher'       => $eligibility['eligible'],
+    //         'claim_block_reason'      => $eligibility['reason'],
+    //         'talkshow_rank'           => $eligibility['talkshow_rank'],
+    //         'has_talkshow_goodiebag'  => $eligibility['include_goodiebag'],
+    //         'brands'                  => $brands,
+    //     ]);
+    // }
+
+    // public function talkshowClaim(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'brand_slug' => 'required|string',
+    //     ]);
+
+    //     if ($validated['brand_slug'] === 'talkshow-goodiebag') {
+    //         return response()->json([
+    //             'message' => 'Free Goodie Bag khusus 5 pendaftar pertama Talkshow tidak memerlukan klaim kode atau redeem. Cukup tunjukkan akun Anda saat check-in di booth registrasi.',
+    //         ], 422);
+    //     }
+
+    //     $user = $request->user();
+    //     $eligibility = $this->checkTalkshowEligibility($user);
+
+    //     if (!$eligibility['is_participant'] || !$eligibility['eligible']) {
+    //         return response()->json(['message' => $eligibility['reason']], 403);
+    //     }
+
+    //     $brandConfig = collect($this->getBrandsConfig('talkshow'))->firstWhere('slug', $validated['brand_slug']);
+    //     if (!$brandConfig) {
+    //         return response()->json(['message' => 'Brand tidak ditemukan.'], 404);
+    //     }
+
+    //     // Cegah peserta Talkshow urutan 6 - 25 mengklaim Back2eras
+    //     if (
+    //         is_array($eligibility['allowed_slugs'])
+    //         && !in_array($brandConfig['slug'], $eligibility['allowed_slugs'], true)
+    //     ) {
+    //         return response()->json([
+    //             'message' => 'Peserta Talkshow urutan 6 - 25 hanya berhak mengklaim 6 voucher brand partner (tidak termasuk voucher Back2eras).',
+    //         ], 403);
+    //     }
+
+    //     return $this->executeClaimTransaction($user, $brandConfig, 'talkshow', Carbon::now('Asia/Jakarta'));
+    // }
+
     public function talkshowIndex(Request $request)
     {
         $user = $request->user();
@@ -3968,14 +4057,10 @@ class VoucherController extends Controller
             ->get()
             ->keyBy('brand_slug');
 
-        $brandConfigs = collect($this->getBrandsConfig('talkshow'));
-
-        // Urutan approved 6 - 25: sembunyikan Back2eras (hanya 6 brand partner)
-        if (is_array($eligibility['allowed_slugs']) && count($eligibility['allowed_slugs']) > 0) {
-            $brandConfigs = $brandConfigs->filter(
-                fn ($b) => in_array($b['slug'], $eligibility['allowed_slugs'], true)
-            )->values();
-        }
+        // Hanya tampilkan 6 brand partner (tanpa Back2eras) untuk seluruh peserta Talkshow
+        $brandConfigs = collect($this->getBrandsConfig('talkshow'))
+            ->filter(fn ($b) => in_array($b['slug'], self::TALKSHOW_ALLOWED_SLUGS, true))
+            ->values();
 
         $brands = $this->mapBrandsForResponse($brandConfigs, $claimedMap, $now);
 
@@ -4001,6 +4086,12 @@ class VoucherController extends Controller
             ], 422);
         }
 
+        if ($validated['brand_slug'] === 'back2eras' || !in_array($validated['brand_slug'], self::TALKSHOW_ALLOWED_SLUGS, true)) {
+            return response()->json([
+                'message' => 'Voucher Back2eras tidak tersedia untuk klaim di halaman Voucher Talkshow.',
+            ], 403);
+        }
+
         $user = $request->user();
         $eligibility = $this->checkTalkshowEligibility($user);
 
@@ -4011,16 +4102,6 @@ class VoucherController extends Controller
         $brandConfig = collect($this->getBrandsConfig('talkshow'))->firstWhere('slug', $validated['brand_slug']);
         if (!$brandConfig) {
             return response()->json(['message' => 'Brand tidak ditemukan.'], 404);
-        }
-
-        // Cegah peserta Talkshow urutan 6 - 25 mengklaim Back2eras
-        if (
-            is_array($eligibility['allowed_slugs'])
-            && !in_array($brandConfig['slug'], $eligibility['allowed_slugs'], true)
-        ) {
-            return response()->json([
-                'message' => 'Peserta Talkshow urutan 6 - 25 hanya berhak mengklaim 6 voucher brand partner (tidak termasuk voucher Back2eras).',
-            ], 403);
         }
 
         return $this->executeClaimTransaction($user, $brandConfig, 'talkshow', Carbon::now('Asia/Jakarta'));
@@ -4094,24 +4175,46 @@ class VoucherController extends Controller
             ];
         }
 
-        // Urutan 1 - 5: Free Goodie Bag (info) + Semua 7 brand (termasuk Back2eras)
+        // // Urutan 1 - 5: Free Goodie Bag (info) + Semua 7 brand (termasuk Back2eras)
+        // if ($bestApprovedRank <= 5) {
+        //     return [
+        //         'is_participant'    => true,
+        //         'eligible'          => true,
+        //         'reason'            => null,
+        //         'allowed_slugs'     => null,
+        //         'include_goodiebag' => true,
+        //         'talkshow_rank'     => $bestApprovedRank,
+        //     ];
+        // }
+
+        // // Urutan 6 - 25: 6 brand partner saja (tanpa Free Goodie Bag & tanpa Back2eras)
+        // return [
+        //     'is_participant'    => true,
+        //     'eligible'          => true,
+        //     'reason'            => null,
+        //     'allowed_slugs'     => ['solher', 'gycora', 'glamoire', 'wdp', 'kecilung', 'malaijia'],
+        //     'include_goodiebag' => false,
+        //     'talkshow_rank'     => $bestApprovedRank,
+        // ];
+
+        // Urutan 1 - 5: Free Goodie Bag (info) + 6 brand partner (tanpa Back2eras)
         if ($bestApprovedRank <= 5) {
             return [
                 'is_participant'    => true,
                 'eligible'          => true,
                 'reason'            => null,
-                'allowed_slugs'     => null,
+                'allowed_slugs'     => self::TALKSHOW_ALLOWED_SLUGS,
                 'include_goodiebag' => true,
                 'talkshow_rank'     => $bestApprovedRank,
             ];
         }
 
-        // Urutan 6 - 25: 6 brand partner saja (tanpa Free Goodie Bag & tanpa Back2eras)
+        // Urutan 6 - 25: 6 brand partner (tanpa Free Goodie Bag & tanpa Back2eras)
         return [
             'is_participant'    => true,
             'eligible'          => true,
             'reason'            => null,
-            'allowed_slugs'     => ['solher', 'gycora', 'glamoire', 'wdp', 'kecilung', 'malaijia'],
+            'allowed_slugs'     => self::TALKSHOW_ALLOWED_SLUGS,
             'include_goodiebag' => false,
             'talkshow_rank'     => $bestApprovedRank,
         ];
