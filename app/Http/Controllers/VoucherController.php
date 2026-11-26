@@ -1977,14 +1977,14 @@ class VoucherController extends Controller
         // Peserta talkshow urutan 6-25: sembunyikan voucher Back2eras
         if (is_array($eligibility['allowed_slugs']) && count($eligibility['allowed_slugs']) > 0) {
             $brandConfigs = $brandConfigs->filter(
-                fn ($b) => in_array($b['slug'], $eligibility['allowed_slugs'], true)
+                fn($b) => in_array($b['slug'], $eligibility['allowed_slugs'], true)
             )->values();
         }
 
         // Peserta talkshow urutan 1-5 (approved): tambahkan voucher Free Goodie Bag di urutan teratas
-        if ($eligibility['include_goodiebag']) {
-            $brandConfigs->prepend($this->getTalkshowGoodieBagConfig());
-        }
+        // if ($eligibility['include_goodiebag']) {
+        //     $brandConfigs->prepend($this->getTalkshowGoodieBagConfig());
+        // }
 
         $brands = $brandConfigs->map(function ($brand) use ($claimedMap, $now) {
             $claimed = $claimedMap->get($brand['slug']);
@@ -2032,6 +2032,7 @@ class VoucherController extends Controller
             'can_claim_voucher'  => $eligibility['eligible'],
             'claim_block_reason' => $eligibility['reason'],
             'talkshow_rank'      => $eligibility['talkshow_rank'],
+            'has_talkshow_goodiebag' => $eligibility['include_goodiebag'],
             'brands'             => $brands,
         ]);
     }
@@ -2042,6 +2043,12 @@ class VoucherController extends Controller
         $validated = $request->validate([
             'brand_slug' => 'required|string',
         ]);
+
+        if ($validated['brand_slug'] === 'talkshow-goodiebag') {
+            return response()->json([
+                'message' => 'Free Goodie Bag khusus 5 pendaftar pertama Talkshow tidak memerlukan klaim kode atau redeem. Cukup tunjukkan akun Anda saat check-in di booth registrasi.',
+            ], 422);
+        }
 
         $user = $request->user();
         $role = $this->normalizeRole($user->role);
@@ -2054,7 +2061,8 @@ class VoucherController extends Controller
             ], 403);
         }
 
-        $brandConfig = collect($this->getAllBrandsConfig($role))->firstWhere('slug', $validated['brand_slug']);
+        // $brandConfig = collect($this->getAllBrandsConfig($role))->firstWhere('slug', $validated['brand_slug']);
+        $brandConfig = collect($this->getBrandsConfig($role))->firstWhere('slug', $validated['brand_slug']);
 
         if (!$brandConfig) {
             return response()->json(['message' => 'Brand tidak ditemukan.'], 404);
@@ -2215,7 +2223,7 @@ class VoucherController extends Controller
         $vouchers = Voucher::with(['user.visitor', 'user.kol', 'user.talkshowRegistrations'])
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn (Voucher $v) => $this->formatAdminVoucher($v, $now));
+            ->map(fn(Voucher $v) => $this->formatAdminVoucher($v, $now));
 
         $stats = [
             'total'   => $vouchers->count(),
@@ -2338,13 +2346,13 @@ class VoucherController extends Controller
     {
         $talkshowRegs = TalkshowRegistration::where(function ($q) use ($user) {
             $q->where('user_id', $user->id)
-              ->orWhere('email', $user->email);
+                ->orWhere('email', $user->email);
         })->get();
 
         $approvedRanks = $talkshowRegs
             ->where('status', 'approved')
             ->pluck('approved_rank')
-            ->filter(fn ($rank) => $rank !== null)
+            ->filter(fn($rank) => $rank !== null)
             ->values();
 
         $bestApprovedRank = $approvedRanks->isNotEmpty() ? (int) $approvedRanks->min() : null;
