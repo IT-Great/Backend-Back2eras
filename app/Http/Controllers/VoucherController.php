@@ -3368,8 +3368,38 @@ class VoucherController extends Controller
         $maxQuota = $maxSequence - $startSequence + 1;
 
         // --- A. BACK2ERAS (Visitor memiliki syarat minimum pembelian Rp100.000) ---
-        $back2erasTerms = $role === 'visitor'
-            ? [
+        // $back2erasTerms = $role === 'visitor'
+        //     ? [
+        //         'Voucher tidak dapat diuangkan.',
+        //         'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
+        //         'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+        //         'Voucher hanya berlaku selama acara berlangsung saja.',
+        //         'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+        //         'Minimum pembelian Rp100.000 dalam satu transaksi untuk dapat mengklaim.',
+        //         'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+        //     ]
+        //     : [
+        //         'Voucher tidak dapat diuangkan.',
+        //         'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
+        //         'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+        //         'Voucher hanya berlaku selama acara berlangsung saja.',
+        //         'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+        //         'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+        //     ];
+
+        // $back2erasSummary = $role === 'visitor'
+        //     ? 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Minimum pembelian Rp100.000 dalam satu transaksi.'
+        //     : 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Tidak dapat diuangkan atau digabungkan dengan promo lain.';
+
+        // --- A. BACK2ERAS (Visitor: min. Rp100.000 | KOL: Hadiah Goodie Bag + Disc 10% min. Rp50.000) ---
+        $back2erasPromoHighlight = match ($role) {
+            'visitor' => 'Minimum pembelian Rp100.000 dalam 1 transaksi',
+            'kol'     => 'Hadiah Goodie Bag + Disc 10% (Minimal belanja Rp50.000)',
+            default   => null,
+        };
+
+        $back2erasTerms = match ($role) {
+            'visitor' => [
                 'Voucher tidak dapat diuangkan.',
                 'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
                 'Voucher tidak dapat digabungkan dengan promosi lainnya.',
@@ -3377,19 +3407,31 @@ class VoucherController extends Controller
                 'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
                 'Minimum pembelian Rp100.000 dalam satu transaksi untuk dapat mengklaim.',
                 'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
-            ]
-            : [
+            ],
+            'kol' => [
+                'Khusus KOL: Hadiah Goodie Bag dari voucher BACK2ERAS + Disc 10% dengan minimal belanja Rp50.000 dalam satu transaksi.',
                 'Voucher tidak dapat diuangkan.',
                 'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
                 'Voucher tidak dapat digabungkan dengan promosi lainnya.',
                 'Voucher hanya berlaku selama acara berlangsung saja.',
                 'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
                 'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
-            ];
+            ],
+            default => [
+                'Voucher tidak dapat diuangkan.',
+                'Voucher hanya bisa digunakan pada acara BACK2ERAS (27 - 29 November 2026).',
+                'Voucher tidak dapat digabungkan dengan promosi lainnya.',
+                'Voucher hanya berlaku selama acara berlangsung saja.',
+                'Pihak BACK2ERAS tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak.',
+                'Syarat & ketentuan dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.',
+            ],
+        };
 
-        $back2erasSummary = $role === 'visitor'
-            ? 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Minimum pembelian Rp100.000 dalam satu transaksi.'
-            : 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Tidak dapat diuangkan atau digabungkan dengan promo lain.';
+        $back2erasSummary = match ($role) {
+            'visitor' => 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Minimum pembelian Rp100.000 dalam satu transaksi.',
+            'kol'     => 'Khusus KOL: Hadiah Goodie Bag dari voucher BACK2ERAS + Disc 10% dengan minimal belanja Rp50.000 selama acara berlangsung (27 - 29 November 2026).',
+            default   => 'Berlaku selama acara BACK2ERAS (27 - 29 November 2026). Tidak dapat diuangkan atau digabungkan dengan promo lain.',
+        };
 
         // --- E. WDP (KOL: 27-29 Nov 2026, 1 orang, menu khusus; Visitor/Talkshow: 3 bulan, min 2 item) ---
         $isKol = $role === 'kol';
@@ -3474,7 +3516,8 @@ class VoucherController extends Controller
                 'phone'            => null,
                 'instagram'        => null,
                 'website'          => null,
-                'promo_highlight'  => $role === 'visitor' ? 'Minimum pembelian Rp100.000 dalam 1 transaksi' : null,
+                // 'promo_highlight'  => $role === 'visitor' ? 'Minimum pembelian Rp100.000 dalam 1 transaksi' : null,
+                'promo_highlight'  => $back2erasPromoHighlight,
                 'special_menus'    => [],
                 'validity_label'   => '27 - 29 November 2026 (Selama acara berlangsung)',
                 'fixed_expires_at' => '2026-11-29 23:59:59',
