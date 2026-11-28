@@ -3611,6 +3611,32 @@ class VoucherController extends Controller
                     'Gycora Essence tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
                 ],
             ],
+            // [
+            //     'slug'             => 'glamoire',
+            //     'name'             => 'Glamoire',
+            //     'prefix'           => 'GLM',
+            //     'start_sequence'   => $startSequence,
+            //     'max_sequence'     => $maxSequence,
+            //     'pad_length'       => 3,
+            //     'max_quota'        => $maxQuota,
+            //     'category'         => 'event',
+            //     'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
+            //     'phone'            => null,
+            //     'instagram'        => null,
+            //     'website'          => null,
+            //     'promo_highlight'  => null,
+            //     'special_menus'    => [],
+            //     'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
+            //     'fixed_expires_at' => '2026-11-29 23:59:59',
+            //     'validity_months'  => null,
+            //     'rule_summary'     => 'Hanya berlaku valid untuk event BACK2ERAS. Tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+            //     'terms'            => [
+            //         'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+            //         'Voucher hanya berlaku valid untuk event BACK2ERAS.',
+            //         'Glamoire tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
+            //     ],
+            // ],
+
             [
                 'slug'             => 'glamoire',
                 'name'             => 'Glamoire',
@@ -3620,21 +3646,34 @@ class VoucherController extends Controller
                 'pad_length'       => 3,
                 'max_quota'        => $maxQuota,
                 'category'         => 'event',
-                'location'         => 'Event BACK2ERAS (27 - 29 November 2026)',
+                'location'         => $isKol
+                    ? 'Booth Glamoire • Event BACK2ERAS (27 - 29 November 2026)'
+                    : 'Event BACK2ERAS (27 - 29 November 2026)',
                 'phone'            => null,
                 'instagram'        => null,
                 'website'          => null,
-                'promo_highlight'  => null,
+                'promo_highlight'  => $isKol
+                    ? 'Khusus KOL: Free Redeem Parfum di Booth Glamoire'
+                    : null,
                 'special_menus'    => [],
                 'validity_label'   => 'Berlaku selama event BACK2ERAS (27 - 29 November 2026)',
                 'fixed_expires_at' => '2026-11-29 23:59:59',
                 'validity_months'  => null,
-                'rule_summary'     => 'Hanya berlaku valid untuk event BACK2ERAS. Tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
-                'terms'            => [
-                    'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
-                    'Voucher hanya berlaku valid untuk event BACK2ERAS.',
-                    'Glamoire tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
-                ],
+                'rule_summary'     => $isKol
+                    ? 'Khusus KOL: Free redeem parfum di Booth Glamoire selama event BACK2ERAS (27 - 29 November 2026). Tidak dapat diuangkan atau digabungkan dengan promo lainnya.'
+                    : 'Hanya berlaku valid untuk event BACK2ERAS. Tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+                'terms'            => $isKol
+                    ? [
+                        'Khusus KOL: Berhak mendapatkan Free Redeem Parfum di Booth Glamoire selama event BACK2ERAS (27 - 29 November 2026).',
+                        'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+                        'Voucher hanya berlaku valid untuk event BACK2ERAS.',
+                        'Glamoire tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
+                    ]
+                    : [
+                        'Voucher tidak dapat diuangkan atau digabungkan dengan promo lainnya.',
+                        'Voucher hanya berlaku valid untuk event BACK2ERAS.',
+                        'Glamoire tidak bertanggung jawab atas voucher yang dicuri, hilang, atau rusak/robek.',
+                    ],
             ],
             $wdpConfig,
             // [
